@@ -1,0 +1,251 @@
+openapi: 3.0.0
+info:
+  title: Sistema de Helpdesk / Gestão Corporativa API
+  description: Contrato técnico (Especificação OpenAPI) listando as rotas, os JSONs esperados e as respostas do servidor. Ajustado com todas as rotas de Chat, Admin e Agentes.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Ambiente Local (Docker / Node.js)
+
+tags:
+  - name: Auth
+  - name: Tickets
+  - name: Chat
+  - name: Admin
+  - name: Agentes
+  - name: Notificacoes
+
+paths:
+  /auth/login:
+    post:
+      summary: Autenticar Cliente ou Admin
+      description: Recebe email e senha, valida com o banco de dados e devolve um token JWT e a Role (papel) daquela pessoa.
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Retorna JWT e nivelAcesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /agentes/auth:
+    post:
+      summary: Autenticar Agente Específico
+      description: Endpoint isolado para agentes corporativos.
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Retorna JWT e nivelAcesso 'agente'
+
+  /tickets:
+    post:
+      summary: Abrir Chamado
+      description: Colaborador abre um novo ticket apontando problema em uma máquina ou software. (Exige token logado).
+      tags: [Tickets]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTicketDTO'
+      responses:
+        '201':
+          description: Chamado criado com sucesso
+    get:
+      summary: Listar Painel de Chamados
+      description: Retorna a lista de chamados. Se a Request vier de um "Agente/Admin", retorna TODOS. Se vier de um "Cliente", retorna só os que ELE abriu.
+      tags: [Tickets]
+      responses:
+        '200':
+          description: Lista enviada
+          
+  /tickets/{id}:
+    get:
+      summary: Ver Detalhes do Chamado
+      tags: [Tickets]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalhes do ticket e interações
+
+  /tickets/{id}/status:
+    patch:
+      summary: Avançar Status do Chamado
+      description: O técnico de TI altera o status do chamado e assume a sua resolução.
+      tags: [Tickets]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: ['aberto','em_atendimento','aguardando_cliente','concluido','cancelado']
+      responses:
+        '200':
+          description: Status Editado
+
+  /tickets/{id}/mensagens:
+    post:
+      summary: Enviar Mensagem no Chat do Chamado
+      tags: [Chat]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mensagem:
+                  type: string
+                  example: "Por favor me envie um print do erro."
+      responses:
+        '201':
+          description: Mensagem Enviada
+    get:
+      summary: Histórico de Mensagens do Chamado (O Chat)
+      tags: [Chat]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de Mensagens do Chat
+
+  /admin/empresas:
+    get:
+      summary: Listar Empresas do Sistema
+      tags: [Admin]
+      responses:
+        '200':
+          description: Retorna todas as empresas ativas/inativas
+
+  /admin/agentes:
+    get:
+      summary: Listar Colaboradores do T.I
+      tags: [Admin]
+      responses:
+        '200':
+          description: Retorna a lista de agentes
+
+  /admin/relatorios/chamados:
+    get:
+      summary: Obter estatísticas para os gráficos do Dashboard
+      tags: [Admin]
+      responses:
+        '200':
+          description: Retorna volume de chamados por categoria e status
+
+  /agentes/{id}/disponibilidade:
+    patch:
+      summary: Mudar status de disponibilidade do agente (1 ou 0)
+      tags: [Agentes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                disponivel:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: Agent status changed
+
+  /notificacoes:
+    get:
+      summary: Ver o sino de notificações
+      tags: [Notificacoes]
+      responses:
+        '200':
+          description: Retorna notificações não lidas
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          example: usuario@empresa.com.br
+        password:
+          type: string
+          example: senhaforte123
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI...
+        nivelAcesso:
+          type: string
+          enum: ['cliente', 'agente', 'admin']
+          example: 'agente'
+
+    CreateTicketDTO: #Molde dde carregar dados de um lado para o outro de um ticket criado
+      type: object
+      required:
+        - titulo
+        - descricao
+        - categoria
+      properties:
+        titulo:
+          type: string
+          example: "Tela Azul no meu computador"
+        descricao:
+          type: string
+          example: "Liguei e nada funcionou..."
+        categoria:
+          type: string
+          example: "Hardware" # Isso é só um exemplo ilustrativo, o frontend vai mandar sua própria string
+        prioridade:
+          type: string
+          enum: [baixa, media, alta]
+          example: "alta"
