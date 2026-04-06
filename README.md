@@ -13,7 +13,7 @@ Este projeto é um **Sistema de Helpdesk Corporativo** projetado para resolver p
 
 ---
 
-## 🎯 Funcionalidades e Escopo (MVP)
+## 🎯 Funcionalidades e Escopo
 
 Abaixo está o mapeamento do que já foi estruturado e do que será desenvolvido (Roadmap):
 
@@ -37,9 +37,10 @@ Abaixo está o mapeamento do que já foi estruturado e do que será desenvolvido
 O sistema foi arquitetado utilizando padrões de mercado, separando o cliente da API para garantir escalabilidade:
 
 * **Design e Fluxo:** Figma *(A fazer)*
-* **Banco de Dados:** MySQL *(A modelar)*
+* **Banco de Dados:** MySQL *(Modelado)*
 * **Backend (API):** Node.js / Laravel *(A iniciar)*
 * **Frontend:** React.js / Next.js com TailwindCSS *(A iniciar)*
+* **Documentação** Construindo a documentação com o Swagger (tralhando)*
 
 ---
 
@@ -65,4 +66,4 @@ helpdesk-system/
 
 ## 📚 Documentação da Integridade da API
 
-> 🚧 **Em Desenvolvimento**: Em breve disponibilizaremos o Swagger/OpenAPI ou a coleção do Postman para verificar detalhes como rotas HTTP, formatos JSON esperados e retornos de erro da API.
+> 🚧 **Em Desenvolvimento**: Em breve disponibilizarei o Swagger/OpenAPI ou a coleção do Postman para verificar detalhes como rotas HTTP, formatos JSON esperados e retornos de erro da API.
