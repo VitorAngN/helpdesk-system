@@ -19,8 +19,9 @@ Abaixo está o mapeamento do que já foi estruturado e do que será desenvolvido
 
 ### 🔐 Autenticação e Perfis (Roles)
 - [ ] **Login seguro** com JWT (JSON Web Tokens).
-- [ ] **Perfil Colaborador**: Pode abrir chamados, ver o status dos próprios chamados e comentar.
-- [ ] **Perfil Técnico**: Acesso ao Dashboard, assumir chamados, mudar status e fechar tickets.
+- [ ] **Perfil Cliente**: Pode abrir chamados, ver o status dos próprios chamados e comentar.
+- [ ] **Perfil Agente**: Acesso ao Dashboard, assumir chamados, responder chat, mudar status e fechar tickets.
+- [ ] **Perfil Administrador**: Acesso total para gerenciar empresas, agentes e visualizar relatórios.
 
 ### 🎫 Gestão de Chamados
 - [ ] Criação e leitura de chamados de suporte.
