@@ -55,6 +55,8 @@ paths:
       summary: Abrir Chamado
       description: Colaborador abre um novo ticket apontando problema em uma máquina ou software. (Exige token logado).
       tags: [Tickets]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -68,6 +70,8 @@ paths:
       summary: Listar Painel de Chamados
       description: Retorna a lista de chamados. Se a Request vier de um "Agente/Admin", retorna TODOS. Se vier de um "Cliente", retorna só os que ELE abriu.
       tags: [Tickets]
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Lista enviada
@@ -76,6 +80,8 @@ paths:
     get:
       summary: Ver Detalhes do Chamado
       tags: [Tickets]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -91,6 +97,8 @@ paths:
       summary: Avançar Status do Chamado
       description: O técnico de TI altera o status do chamado e assume a sua resolução.
       tags: [Tickets]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -115,6 +123,8 @@ paths:
     post:
       summary: Enviar Mensagem no Chat do Chamado
       tags: [Chat]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -137,6 +147,8 @@ paths:
     get:
       summary: Histórico de Mensagens do Chamado (O Chat)
       tags: [Chat]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -151,6 +163,8 @@ paths:
     get:
       summary: Listar Empresas do Sistema
       tags: [Admin]
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Retorna todas as empresas ativas/inativas
@@ -159,6 +173,8 @@ paths:
     get:
       summary: Listar Colaboradores do T.I
       tags: [Admin]
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Retorna a lista de agentes
@@ -167,6 +183,8 @@ paths:
     get:
       summary: Obter estatísticas para os gráficos do Dashboard
       tags: [Admin]
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Retorna volume de chamados por categoria e status
@@ -175,6 +193,8 @@ paths:
     patch:
       summary: Mudar status de disponibilidade do agente (1 ou 0)
       tags: [Agentes]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -199,11 +219,19 @@ paths:
     get:
       summary: Ver o sino de notificações
       tags: [Notificacoes]
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Retorna notificações não lidas
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     LoginRequest:
       type: object

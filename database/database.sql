@@ -8,8 +8,7 @@ CREATE TABLE usuarios (
     senha       VARCHAR(255) NOT NULL,
     nivelAcesso ENUM('cliente', 'agente', 'admin') NOT NULL,
     createdAt   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedAt   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    KEY idx_usuarios_email (email)
+    updatedAt   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE empresas (
@@ -40,7 +39,7 @@ CREATE TABLE chamados (
     idEmpresa     INT UNSIGNED,
     titulo        VARCHAR(150) NOT NULL,
     descricao     TEXT         NOT NULL,         
-    categoria     VARCHAR(50)  NOT NULL,
+    categoria     VARCHAR(50)  NULL,
     status        ENUM('aberto','em_atendimento','aguardando_cliente','concluido','cancelado') NOT NULL DEFAULT 'aberto',
     prioridade    ENUM('baixa','media','alta') NOT NULL DEFAULT 'media',
     anexo         VARCHAR(500),
