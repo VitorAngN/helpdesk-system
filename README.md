@@ -3,9 +3,15 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS" />
+  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" />
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
   <img src="https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
 </p>
+
+> [!WARNING]
+> **Aviso de Fase de Desenvolvimento:**
+> Este projeto encontra-se em desenvolvimento ativo! A estrutura base (NestJS, Prisma 7, AuthModule e JWT) foi inicializada, mas muitas rotas ainda estão sendo construídas. O código *pode possuir bugs, inconsistências ou refatorações súbitas*.
 
 ## 📌 Sobre o Projeto
 
@@ -38,10 +44,10 @@ Abaixo está o mapeamento do que já foi estruturado e do que será desenvolvido
 O sistema foi arquitetado utilizando padrões de mercado, separando o cliente da API para garantir escalabilidade:
 
 * **Design e Fluxo:** Figma *(A fazer)*
-* **Banco de Dados:** MySQL *(Modelado)*
-* **Backend (API):** Node.js / Laravel *(A iniciar)*
+* **Banco de Dados:** MySQL *(Prisma 7 Sincronizado)*
+* **Backend (API):** Node.js com NestJS e JWT *(Desenvolvimento Módulos Iniciais)*
 * **Frontend:** React.js / Next.js com TailwindCSS *(A iniciar)*
-* **Documentação** Construindo a documentação com o Swagger (tralhando)*
+* **Documentação:** Swagger (OpenAPI) integrado no NestJS *(Em progresso)*
 
 ---
 
