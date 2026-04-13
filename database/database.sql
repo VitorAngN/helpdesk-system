@@ -14,8 +14,8 @@ CREATE TABLE usuarios (
 CREATE TABLE empresas (
     idEmpresa   INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nome        VARCHAR(150) NOT NULL,
-    cnpj        VARCHAR(18)  UNIQUE,
-    email       VARCHAR(100),
+    cnpj        VARCHAR(18)  UNIQUE NOT NULL,
+    email       VARCHAR(100) NOT NULL,
     ativo       TINYINT(1)   NOT NULL DEFAULT 1,
     createdAt   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
