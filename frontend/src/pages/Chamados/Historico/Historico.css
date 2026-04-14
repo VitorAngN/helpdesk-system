@@ -1,0 +1,119 @@
+.historico-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.historico-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #242424;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #333;
+}
+
+.historico-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+  color: #f9fafb;
+}
+
+.historico-header p {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.search-box input {
+  padding: 12px 20px;
+  background-color: #1a1a1a;
+  border: 1px solid #3c3c3c;
+  border-radius: 8px;
+  color: #fff;
+  width: 300px;
+  font-family: inherit;
+}
+
+.search-box input:focus {
+  border-color: #0d6efd;
+  outline: none;
+}
+
+.historico-table-container {
+  background-color: #242424;
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.historico-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.historico-table th {
+  background-color: #1a1a1a;
+  padding: 16px;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-weight: 500;
+  border-bottom: 1px solid #333;
+}
+
+.historico-table td {
+  padding: 16px;
+  border-bottom: 1px solid #333;
+  font-size: 0.9rem;
+  color: #d1d5db;
+}
+
+.historico-table tr:hover {
+  background-color: #2a2a2a;
+}
+
+.t-protocolo {
+  font-family: monospace;
+  color: #0d6efd !important;
+  font-weight: 600;
+}
+
+.t-assunto {
+  color: #f9fafb !important;
+  font-weight: 500;
+}
+
+.t-data {
+  color: #9ca3af !important;
+  font-size: 0.85rem !important;
+}
+
+.p-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.p-baixa { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.p-media { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.p-alta, .p-urgente { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+.t-btn-view {
+  background: transparent;
+  border: 1px solid #444;
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.t-btn-view:hover {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
