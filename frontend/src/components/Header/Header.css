@@ -1,0 +1,178 @@
+/* Header Base */
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #242424;
+  height: 64px;
+  padding: 0 24px;
+  border-bottom: 1px solid #333;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon-small {
+  width: 32px;
+  height: 32px;
+  background-color: #0d6efd;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-squares-small {
+  width: 14px;
+  height: 14px;
+  background: white;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+.logo-squares-small::before,
+.logo-squares-small::after {
+  content: "";
+  background: inherit;
+}
+
+.header-logo h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #d1d5db;
+  margin-right: 12px;
+}
+.dot.online {
+  width: 8px; height: 8px; border-radius: 50%;
+  background-color: #22c55e;
+}
+
+/* Notificações e Dropdown */
+.notification-wrapper {
+  position: relative;
+}
+
+.notification-btn {
+  background: transparent;
+  color: #d1d5db;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.notification-btn:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+.notification-dot {
+  position: absolute;
+  top: 4px; right: 4px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: bold;
+  height: 14px;
+  min-width: 14px;
+  padding: 0 4px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #242424;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 320px;
+  background-color: #2a2a2a;
+  border: 1px solid #3c3c3c;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notif-header {
+  padding: 16px;
+  border-bottom: 1px solid #3c3c3c;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.notif-header h4 { margin: 0; color: #fff; font-size: 1rem; }
+.notif-header span { font-size: 0.8rem; color: #3b82f6; font-weight: 600;}
+
+.notif-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+.notif-empty {
+  padding: 24px; text-align: center; color: #9ca3af; font-size: 0.9rem; margin: 0;
+}
+
+.notif-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px; border-bottom: 1px solid #333;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item.nao-lida { background-color: rgba(59, 130, 246, 0.05); }
+
+.notif-content { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem;}
+.notif-content strong { color: #f9fafb; font-weight: 500; }
+.notif-content span { color: #9ca3af; }
+
+.notif-read-btn {
+  background: transparent; border: 1px solid #555; border-radius: 6px;
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  color: #d1d5db; cursor: pointer; transition: 0.2s;
+}
+.notif-read-btn:hover { background-color: #22c55e; border-color: #22c55e; color: #fff;}
+
+/* USER */
+.user-avatar {
+  background-color: #0d6efd;
+  color: white;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.logout-btn {
+  background: transparent;
+  color: #ef4444; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 8px; transition: 0.2s;
+}
+.logout-btn:hover { background-color: rgba(239, 68, 68, 0.1); }

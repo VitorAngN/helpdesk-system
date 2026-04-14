@@ -1,0 +1,35 @@
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Aberto - Fundo branco/gelo, texto azulado ou escuro */
+.status-aberto {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Em atendimento - Fundo meio pêssego/bege claro, texto amarronzado (fiel à imagem) */
+.status-em-atendimento {
+  background-color: #fef3c7; /* yellow-100 */
+  color: #92400e; /* yellow-800 */
+}
+
+/* Concluído / Ativa - Fundo verde claro, texto verde escuro */
+.status-concluido,
+.status-ativa {
+  background-color: #dcfce7; /* green-100 */
+  color: #166534; /* green-800 */
+}
+
+/* Inativa - Fundo escuro/cinza, texto esbranquiçado (fiel à imagem Tela 6) */
+.status-inativa {
+  background-color: #374151;
+  color: #d1d5db;
+}

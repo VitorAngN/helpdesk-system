@@ -4,7 +4,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from './generated/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-
+import cors from 'cors';
 //Inicializar o express
 const app = express();
 
@@ -12,7 +12,8 @@ const app = express();
 app.use(express.json());
 //instanciar o prisma client para usar o banco de dados
 const prisma = new PrismaClient();
-
+//usar Cors
+app.use(cors());
 
 // ═══════════════════════════════════════════════
 // MIDDLEWARES

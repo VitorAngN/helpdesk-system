@@ -1,0 +1,22 @@
+/* Vamos mesclar a base do Login, pois compartilham muito código, 
+   mas com isolamento lógico pra evitar quebrar do lado de lá caso precise mudar margens aqui.*/
+@import '../Login/Login.css';
+
+.register-text {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.register-link {
+  color: #60a5fa;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.register-link:hover {
+  text-decoration: underline;
+  color: #3b82f6;
+}

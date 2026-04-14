@@ -1,0 +1,28 @@
+.layout-root {
+  min-height: 100vh;
+  width: 100vw;
+  background-color: #141414; /* Fundo escuro base */
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  padding: 40px 20px;
+}
+
+.layout-container {
+  width: 100%;
+  max-width: 900px; /* Largura máxima para não esticar demais em monitores grandes */
+  background-color: #242424; /* Fundo do card principal, igual ao login */
+  border: 1px solid #333333;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.layout-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
