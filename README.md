@@ -1,4 +1,4 @@
-<h1 align="center">🛠️ Sistema de Helpdesk e Gestão de Atendimentos</h1>
+<h1 align="center">Sistema de Helpdesk e Gestão de Atendimentos</h1>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Finalizado-success?style=for-the-badge" alt="Status" />
@@ -17,35 +17,35 @@
 
 ---
 
-## 📌 Sobre o Projeto
+## Sobre o Projeto
 
 O **HelpDesk** é uma plataforma que otimiza a ponte entre clientes e a área de suporte especializado. Através deste painel, é possível registrar chamados (abrir tickets), monitorar em tempo real a evolução destes pedidos de suporte, e estabelecer uma conversa assíncrona — estilo chat — com o Analista/Agente designado. O sistema foi lapidado para entregar uma experiência premium, contando com painéis segmentados baseados no cargo de quem fez o Login.
 
 ---
 
-## 🎯 Funcionalidades Implementadas
+## Funcionalidades Implementadas
 
-### 🔐 Segurança e Autenticação (JWT)
+### Segurança e Autenticação (JWT)
 - **Login Seguro & Rotas Protegidas:** Middlewares de Frontend e Backend verificam a assinatura de Tokens JWT para impedir manipulações. Senhas são salvas usando criptografia Hash (`bcrypt`).
 - **Roteamento Controlado por Níveis:** Três esferas de acesso (`Cliente`, `Agente`, `Admin`) com bloqueios totais em tela que previnem vazamento de escopo.
 
-### 👥 Experiências por Nível de Acesso
-- **👤 Visão Cliente:** Possui um Dashboard amigável para acompanhar contatos abertos e visualizar seus protocolos e interagir no Chat do Suporte.
-- **🎧 Visão Agente:** Acessa uma Dashboard analítica, recebe as filas de atendimento do sistema de modo simultâneo, podendo alterar Status de chamados (Resolvido, Cancelado) e notificar o usuário. 
-- **👑 Visão Admin:** Concentração e Governança de todo o Sistema. Painel para cadastro dinâmico de novas Empresas (B2B), Gestão total de Usuários/Agentes, além de visão integral aos dados do servidor.
+### Experiências por Nível de Acesso
+- **Visão Cliente:** Possui um Dashboard amigável para acompanhar contatos abertos e visualizar seus protocolos e interagir no Chat do Suporte.
+- **Visão Agente:** Acessa uma Dashboard analítica, recebe as filas de atendimento do sistema de modo simultâneo, podendo alterar Status de chamados (Resolvido, Cancelado) e notificar o usuário. 
+- **Visão Admin:** Concentração e Governança de todo o Sistema. Painel para cadastro dinâmico de novas Empresas (B2B), Gestão total de Usuários/Agentes, além de visão integral aos dados do servidor.
 
-### 📱 Experiência de Chat "WhatsApp Style"
+### Experiência de Chat "WhatsApp Style"
 A tela chave da ferramenta (o Contato Técnico) foi desenhada no modelo *Split Layout*. Do lado esquerdo a Sidebar de listagem de contatos filtráveis, do lado direito a bolha de interações baseada em mensagens instatâneas gravadas no MySQL.
 
-### 🔔 Notificações Ativas
+### Notificações Ativas
 O Cabeçalho (Header) principal varre ativamente eventos do usuário e apresenta "Badges" visuais informando Novas Respostas ou Atualizações no Status dos chamados, podendo ser limpas após leitura.
 
-### 📦 Controle Histórico (Auditoria)
+### Controle Histórico (Auditoria)
 Todos os encerramentos de chamado não exluem dados, arquivam. Uma robusta rota em base de Tabela Genérica foi criada (`/historico`) para pesquisa massiva através de um filtro de Protocolos ou Assuntos em todo banco.
 
 ---
 
-## 💻 Tecnologias da Estiva
+## Tecnologias da Estiva
 
 ### Camada Backend (API Rest API)
 - **Node.js** v24 com **Express.js** 
@@ -63,7 +63,7 @@ Todos os encerramentos de chamado não exluem dados, arquivam. Uma robusta rota 
 
 ---
 
-## 📁 Arquitetura do Workspace
+## Arquitetura do Workspace
 
 ```text
 helpdesk-system/
@@ -86,9 +86,9 @@ helpdesk-system/
 
 ---
 
-## 🚀 Como Rodar e Testar na sua Máquina
+## Como Rodar e Testar na sua Máquina
 
-### 1️⃣ Iniciando o Servidor (Backend)
+### Iniciando o Servidor (Backend)
 1. Instale o **Node.js v18+** e garanta que o seu Servidor MySQL Local (`localhost:3306`) esteja rodando na sua máquina.
 2. Acesse a parta do servidor: `cd backend`
 3. Instale os módulos: `npm install`
@@ -105,7 +105,7 @@ helpdesk-system/
 6. Inicialize o cérebro: `npm run dev` 
 *(A Api passará a servir na rota http://localhost:3000)*
 
-### 2️⃣ Inicializando as Telas (Frontend React)
+### Inicializando as Telas (Frontend React)
 1. Abra um terminal separado e acesse o cliente pela raiz: `cd frontend`
 2. Instale as dependências visuais: `npm install`
 3. Inicie a compilação local pelo vite: `npm run dev`
