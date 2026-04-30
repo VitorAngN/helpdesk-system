@@ -23,6 +23,35 @@ O **HelpDesk** é uma plataforma que otimiza a ponte entre clientes e a área de
 
 ---
 
+## Interface do Sistema
+
+Para visualizar os prints do sistema funcionando, crie uma pasta chamada `docs` na raiz deste repositório e salve as imagens com os nomes indicados abaixo:
+
+### Acesso ao Sistema (Login e Cadastro)
+![Tela de Login](docs/login.png)
+![Tela de Cadastro](docs/register.png)
+
+### Experiência do Cliente
+![Dashboard do Cliente](docs/client-dashboard.png)
+![Histórico de Chamados](docs/client-history.png)
+![Chat de Atendimento](docs/client-chat.png)
+
+### Painel do Agente (Suporte)
+![Dashboard do Agente](docs/agent-dashboard.png)
+![Gerenciamento de Chamados](docs/agent-history.png)
+![Interface de Chat do Agente](docs/agent-chat.png)
+
+### Gestão Administrativa (Admin)
+![Dashboard do Admin](docs/admin-dashboard.png)
+![Gerenciamento de Empresas](docs/admin-companies.png)
+![Cadastro de Empresa](docs/admin-create-company.png)
+![Cadastro de Usuários e Perfis](docs/admin-create-user.png)
+
+### Abertura de Novo Chamado
+![Novo Chamado](docs/new-ticket.png)
+
+---
+
 ## Funcionalidades Implementadas
 
 ### Segurança e Autenticação (JWT)
