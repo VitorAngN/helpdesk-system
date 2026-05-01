@@ -5,18 +5,19 @@
 .register-text {
   text-align: center;
   margin-top: 24px;
-  font-size: 0.85rem;
-  color: #9ca3af;
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }
 
 .register-link {
-  color: #60a5fa;
-  font-weight: 500;
+  color: var(--primary-color);
+  font-weight: 600;
   cursor: pointer;
   transition: color 0.2s;
+  text-decoration: none;
 }
 
 .register-link:hover {
   text-decoration: underline;
-  color: #3b82f6;
+  color: var(--primary-hover);
 }

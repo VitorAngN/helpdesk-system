@@ -54,6 +54,7 @@ model Usuario {
   chamados Chamado[]
   mensagens Chat_Mensagem[]
   notificacoes Notificacao[]
+  logs LogAuditoria[]
   //Esta liha diz ao prisma: "O nome real dessa tabela lá no sql é usuarios"
   @@map("usuarios")
 }
@@ -101,6 +102,8 @@ model Chamado {
   prioridade Prioridade @default(media)
   anexo String? @db.VarChar(500)
   mimeTypeAnexo String? @db.VarChar(100)
+  avaliacao Int?
+  dataFechamento DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -143,5 +146,30 @@ model Notificacao{
   usuario Usuario @relation(fields: [idUsuario], references: [idUsuario])
   chamado Chamado? @relation(fields: [idChamado], references: [idChamado])
   @@map("notificacoes")
+}
+
+model Categoria {
+  idCategoria Int @id @default(autoincrement()) @db.UnsignedInt
+  nome String @db.VarChar(50) @unique
+  @@map("categorias")
+}
+
+model Macro {
+  idMacro Int @id @default(autoincrement()) @db.UnsignedInt
+  titulo String @db.VarChar(100)
+  texto String @db.Text
+  @@map("macros")
+}
+
+model LogAuditoria {
+  idLog Int @id @default(autoincrement()) @db.UnsignedInt
+  idUsuario Int @db.UnsignedInt
+  acao String @db.VarChar(255)
+  detalhe String? @db.Text
+  createdAt DateTime @default(now())
+
+  // RELAÇÕES
+  usuario Usuario @relation(fields: [idUsuario], references: [idUsuario])
+  @@map("logs_auditoria")
 }
 

@@ -1,12 +1,60 @@
 import 'dotenv/config';
 import express from 'express';
+import http from 'http';
+import { Server as SocketServer } from 'socket.io';
 import type { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from './generated/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
-//Inicializar o express
+import multer from 'multer';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+
+// ─── Inicialização do Servidor HTTP + Socket.io ───
 const app = express();
+const server = http.createServer(app);
+export const io = new SocketServer(server, {
+    cors: { origin: '*', methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'] }
+});
+
+// Configuração do Socket.io: cada chamado é uma "sala"
+io.on('connection', (socket) => {
+    socket.on('entrar_sala', (idChamado: string) => {
+        socket.join(`chamado_${idChamado}`);
+    });
+    socket.on('sair_sala', (idChamado: string) => {
+        socket.leave(`chamado_${idChamado}`);
+    });
+    socket.on('entrar_sala_agentes', () => {
+        socket.join('sala_agentes');
+    });
+});
+
+// ─── Multer (Upload de Arquivos) ───
+const uploadsDir = path.resolve('./uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+const storage = multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadsDir),
+    filename: (_req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `${uuidv4()}${ext}`);
+    }
+});
+const upload = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    fileFilter: (_req, file, cb) => {
+        const allowed = ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp'];
+        if (allowed.includes(path.extname(file.originalname).toLowerCase())) cb(null, true);
+        else cb(new Error('Tipo de arquivo não permitido'));
+    }
+});
+
+// Expor a pasta uploads como rota estática
+app.use('/uploads', express.static(uploadsDir));
 
 //fazer o express entender o formato json
 app.use(express.json());
@@ -327,6 +375,23 @@ app.post("/api/chamados", verificarToken, async (req: Request, res: Response) =>
         const novoChamado = await prisma.chamado.create({
             data: { protocolo, idCliente, idAgente, idEmpresa, titulo, descricao, categoria, prioridade, anexo, mimeTypeAnexo }
         });
+
+        // Notificar Agentes e Admins sobre o novo chamado
+        const agentesEAdmins = await prisma.usuario.findMany({
+            where: { nivelAcesso: { in: ['admin', 'agente'] } },
+            select: { idUsuario: true }
+        });
+
+        if (agentesEAdmins.length > 0) {
+            await prisma.notificacao.createMany({
+                data: agentesEAdmins.map(user => ({
+                    idUsuario: user.idUsuario,
+                    idChamado: novoChamado.idChamado,
+                    tipo: 'novo_chamado' as any
+                }))
+            });
+        }
+
         res.status(201).json(novoChamado);
     } catch (error) {
         console.error("Erro ao criar chamado:", error);
@@ -375,12 +440,48 @@ app.put("/api/chamados/:id", verificarToken, apenasAgente, async (req: Request, 
         res.status(500).json({ error: "Erro ao atualizar chamado" });
     }
 });
-// PATCH - Só agente/admin muda o status do chamado (RN-04/RN-05)
-app.patch("/api/chamados/:id/status", verificarToken, apenasAgente, async (req: Request, res: Response) => {
+app.patch("/api/chamados/:id/status", verificarToken, async (req: Request, res: Response) => {
     try {
         const id = parseInt(req.params.id);
         const { status } = req.body;
-        const chamadoAtualizado = await prisma.chamado.update({ where: { idChamado: id }, data: { status } });
+        const usuario = (req as any).usuarioLogado;
+
+        const chamadoExistente = await prisma.chamado.findUnique({ where: { idChamado: id } });
+        if (!chamadoExistente) {
+            res.status(404).json({ error: "Chamado não encontrado" });
+            return;
+        }
+
+        // Validação de permissão: Cliente só pode alterar o próprio chamado, e só para 'cancelado'
+        if (usuario.nivelAcesso === 'cliente') {
+            if (chamadoExistente.idCliente !== usuario.idUsuario) {
+                res.status(403).json({ error: "Acesso negado." });
+                return;
+            }
+            if (status !== 'cancelado') {
+                res.status(403).json({ error: "Cliente só pode cancelar chamados." });
+                return;
+            }
+        }
+
+        const dataFechamento = (status === 'concluido' || status === 'cancelado') ? new Date() : null;
+
+        const chamadoAtualizado = await prisma.chamado.update({ 
+            where: { idChamado: id }, 
+            data: { status, dataFechamento } 
+        });
+        
+        // Criar notificação para o cliente
+        if (chamadoAtualizado && chamadoAtualizado.idCliente) {
+            await prisma.notificacao.create({
+                data: {
+                    idUsuario: chamadoAtualizado.idCliente,
+                    idChamado: id,
+                    tipo: status === 'concluido' ? 'chamado_concluido' : status === 'cancelado' ? 'chamado_cancelado' : 'status_alterado'
+                }
+            });
+        }
+        
         res.status(200).json(chamadoAtualizado);
     } catch (error) {
         console.error("Erro ao atualizar status do chamado:", error);
@@ -406,6 +507,23 @@ app.post("/api/chamados/:id/mensagens", verificarToken, async (req: Request, res
         const novaMensagem = await prisma.chat_Mensagem.create({
             data: { idChamado, idRemetente, mensagem, anexo, mimeTypeAnexo }
         });
+
+        // Emitir via Socket.io para a sala do chamado (tempo real)
+        io.to(`chamado_${idChamado}`).emit('nova_mensagem', novaMensagem);
+        
+        // Criar notificação para o destinatário da mensagem
+        const chamado = await prisma.chamado.findUnique({ where: { idChamado } });
+        if (chamado) {
+            const idDestinatario = (idRemetente === chamado.idCliente) ? chamado.idAgente : chamado.idCliente;
+            if (idDestinatario) {
+                const novaNotif = await prisma.notificacao.create({
+                    data: { idUsuario: idDestinatario, idChamado, tipo: 'nova_mensagem' }
+                });
+                // Emitir notificação em tempo real
+                io.emit(`notificacao_${idDestinatario}`, novaNotif);
+            }
+        }
+
         res.status(201).json(novaMensagem);
     } catch (error) {
         console.error("Erro ao criar mensagem:", error);
@@ -496,10 +614,198 @@ app.delete("/api/notificacoes/:id", verificarToken, apenasAdmin, async (req: Req
     }
 });
 
+// ─── ADMIN ENTERPRISE ────────────────────────────
+
+// 1. Categorias
+app.get("/api/categorias", verificarToken, async (req: Request, res: Response) => {
+    try {
+        const categorias = await prisma.categoria.findMany();
+        res.status(200).json(categorias);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao buscar categorias" });
+    }
+});
+
+app.post("/api/categorias", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
+    try {
+        const { nome } = req.body;
+        const categoria = await prisma.categoria.create({ data: { nome } });
+        res.status(201).json(categoria);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao criar categoria" });
+    }
+});
+
+app.delete("/api/categorias/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        await prisma.categoria.delete({ where: { idCategoria: id } });
+        res.status(200).json({ message: "Categoria deletada" });
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao deletar categoria" });
+    }
+});
+
+// 2. Macros
+app.get("/api/macros", verificarToken, apenasAgente, async (req: Request, res: Response) => {
+    try {
+        const macros = await prisma.macro.findMany();
+        res.status(200).json(macros);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao buscar macros" });
+    }
+});
+
+app.post("/api/macros", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
+    try {
+        const { titulo, texto } = req.body;
+        const macro = await prisma.macro.create({ data: { titulo, texto } });
+        res.status(201).json(macro);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao criar macro" });
+    }
+});
+
+app.delete("/api/macros/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        await prisma.macro.delete({ where: { idMacro: id } });
+        res.status(200).json({ message: "Macro deletada" });
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao deletar macro" });
+    }
+});
+
+// 3. Auditoria
+app.get("/api/logs", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
+    try {
+        const logs = await prisma.logAuditoria.findMany({
+            include: { usuario: { select: { nome: true, email: true } } },
+            orderBy: { createdAt: 'desc' },
+            take: 100
+        });
+        res.status(200).json(logs);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao buscar logs" });
+    }
+});
+
+// 4. Analytics / Indicadores
+app.get("/api/analytics", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
+    try {
+        const [totalChamados, abertos, concluidos, cancelados, porPrioridade] = await Promise.all([
+            prisma.chamado.count(),
+            prisma.chamado.count({ where: { status: { notIn: ['concluido', 'cancelado'] } } }),
+            prisma.chamado.count({ where: { status: 'concluido' } }),
+            prisma.chamado.count({ where: { status: 'cancelado' } }),
+            prisma.chamado.groupBy({ by: ['prioridade'], _count: { prioridade: true } })
+        ]);
+
+        // CSAT: Média das avaliações dos chamados que foram avaliados
+        const avaliacoesResult = await prisma.chamado.aggregate({
+            _avg: { avaliacao: true },
+            _count: { avaliacao: true },
+            where: { avaliacao: { not: null } }
+        });
+        const mediaCsat = avaliacoesResult._avg.avaliacao 
+            ? Math.round(avaliacoesResult._avg.avaliacao * 10) / 10 
+            : null;
+        const totalAvaliados = avaliacoesResult._count.avaliacao;
+
+        // SLA: Tempo médio de resolução em horas (chamados concluídos com dataFechamento)
+        const chamadosConcluidos = await prisma.chamado.findMany({
+            where: { status: 'concluido', dataFechamento: { not: null } },
+            select: { createdAt: true, dataFechamento: true }
+        });
+
+        let tempoMedioResolucaoHoras: number | null = null;
+        if (chamadosConcluidos.length > 0) {
+            const totalMs = chamadosConcluidos.reduce((acc, c) => {
+                const diff = new Date(c.dataFechamento!).getTime() - new Date(c.createdAt).getTime();
+                return acc + diff;
+            }, 0);
+            const mediaMs = totalMs / chamadosConcluidos.length;
+            tempoMedioResolucaoHoras = Math.round((mediaMs / (1000 * 60 * 60)) * 10) / 10;
+        }
+
+        res.status(200).json({ 
+            totalChamados, abertos, concluidos, cancelados, porPrioridade,
+            mediaCsat, totalAvaliados,
+            tempoMedioResolucaoHoras, totalConcluidosComSLA: chamadosConcluidos.length
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao gerar analytics" });
+    }
+});
+
+// 5. Triagem e Atribuição
+app.patch("/api/chamados/:id/atribuir", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { idAgente } = req.body;
+        const usuarioLogado = (req as any).usuarioLogado;
+
+        const chamadoAtualizado = await prisma.chamado.update({
+            where: { idChamado: id },
+            data: { idAgente }
+        });
+
+        // Registrar auditoria
+        await prisma.logAuditoria.create({
+            data: {
+                idUsuario: usuarioLogado.idUsuario,
+                acao: 'ATRIBUICAO_CHAMADO',
+                detalhe: `Chamado ${id} atribuido ao agente ${idAgente}`
+            }
+        });
+
+        res.status(200).json(chamadoAtualizado);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao atribuir chamado" });
+    }
+});
+// ─── UPLOAD DE ARQUIVOS ────────────────────────────────────
+app.post('/api/upload', verificarToken, upload.single('arquivo'), (req: Request, res: Response) => {
+    if (!req.file) {
+        res.status(400).json({ error: 'Nenhum arquivo enviado.' });
+        return;
+    }
+    const url = `/uploads/${req.file.filename}`;
+    res.status(200).json({ url, mimeType: req.file.mimetype, nome: req.file.originalname });
+});
+
+// ─── AVALIAÇÃO (CSAT) ─────────────────────────────────────
+app.patch('/api/chamados/:id/avaliar', verificarToken, async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { avaliacao } = req.body;
+        const usuario = (req as any).usuarioLogado;
+
+        if (!avaliacao || avaliacao < 1 || avaliacao > 5) {
+            res.status(400).json({ error: 'Avaliação deve ser entre 1 e 5.' });
+            return;
+        }
+
+        const chamado = await prisma.chamado.findUnique({ where: { idChamado: id } });
+        if (!chamado || chamado.idCliente !== usuario.idUsuario) {
+            res.status(403).json({ error: 'Acesso negado.' });
+            return;
+        }
+
+        const chamadoAtualizado = await prisma.chamado.update({
+            where: { idChamado: id },
+            data: { avaliacao }
+        });
+        res.status(200).json(chamadoAtualizado);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao registrar avaliação.' });
+    }
+});
+
 
 //porta aberta no pc
 const PORTA = 3000;
 //fazer o backend rodar na minha porta 3000 e deixar rodando.
-app.listen(PORTA, () => {
+server.listen(PORTA, () => {
     console.log(`Esta tudo rodando bem. na porta http://localhost:${PORTA}`);
 });

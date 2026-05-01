@@ -9,27 +9,39 @@
   justify-content: center;
 }
 
-/* Aberto - Fundo branco/gelo, texto azulado ou escuro */
+/* Aberto - Fundo azul claro, texto azul */
 .status-aberto {
-  background-color: #f3f4f6;
-  color: #1f2937;
+  background-color: var(--primary-light);
+  color: var(--primary-color);
 }
 
-/* Em atendimento - Fundo meio pêssego/bege claro, texto amarronzado (fiel à imagem) */
+/* Em atendimento - Fundo amarelo/laranja claro, texto laranja/marrom */
 .status-em-atendimento {
-  background-color: #fef3c7; /* yellow-100 */
-  color: #92400e; /* yellow-800 */
+  background-color: var(--warning-light);
+  color: var(--warning);
 }
 
 /* Concluído / Ativa - Fundo verde claro, texto verde escuro */
 .status-concluido,
 .status-ativa {
-  background-color: #dcfce7; /* green-100 */
-  color: #166534; /* green-800 */
+  background-color: var(--success-light);
+  color: var(--success);
 }
 
-/* Inativa - Fundo escuro/cinza, texto esbranquiçado (fiel à imagem Tela 6) */
+/* Inativa - Fundo cinza, texto escuro */
 .status-inativa {
-  background-color: #374151;
-  color: #d1d5db;
+  background-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+/* Aguardando Cliente - Fundo laranja claro, texto laranja */
+.status-aguardando-cliente {
+  background-color: #fff7ed;
+  color: #c2410c;
+}
+
+/* Cancelado - Fundo vermelho claro, texto vermelho */
+.status-cancelado {
+  background-color: var(--danger-light);
+  color: var(--danger);
 }

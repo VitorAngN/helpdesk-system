@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import api from '../../../services/api';
@@ -6,19 +6,42 @@ import { AuthContext } from '../../../contexts/AuthContext';
 import Layout from '../../../components/Layout/Layout';
 import './NovoChamado.css';
 
+interface Categoria {
+  idCategoria: number;
+  nome: string;
+}
+
 export default function NovoChamado() {
   const navigate = useNavigate();
   const { usuario } = useContext(AuthContext);
 
   // Estados dos campos
   const [titulo, setTitulo] = useState('');
-  const [categoria, setCategoria] = useState('Hardware');
+  const [categoria, setCategoria] = useState('');
+  const [categoriasLista, setCategoriasLista] = useState<Categoria[]>([]);
   const [prioridade, setPrioridade] = useState('Baixa');
   const [descricao, setDescricao] = useState('');
   
   // Fake state para arquivos
   const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadCategorias() {
+      try {
+        const res = await api.get('/categorias');
+        setCategoriasLista(res.data);
+        if (res.data.length > 0) {
+          setCategoria(res.data[0].nome);
+        } else {
+          setCategoria('Geral'); // fallback
+        }
+      } catch (err) {
+        console.error('Erro ao buscar categorias:', err);
+      }
+    }
+    loadCategorias();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,23 +52,31 @@ export default function NovoChamado() {
 
     setLoading(true);
     try {
-      // Simulação do anexo
-      let urlAnexoFicticia = "";
+      let urlAnexo = "";
+      let mimeTypeAnexo = "";
+
+      // Upload real do arquivo via Multer
       if (arquivoSelecionado) {
-        urlAnexoFicticia = `https://seudominio.com/uploads/${arquivoSelecionado.name}`;
+        const formData = new FormData();
+        formData.append('arquivo', arquivoSelecionado);
+        const resUpload = await api.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        urlAnexo = resUpload.data.url;
+        mimeTypeAnexo = resUpload.data.mimeType;
       }
 
       await api.post('/chamados', {
         idCliente: usuario?.idUsuario,
-        titulo: titulo,
-        descricao: descricao,
-        categoria: categoria,
-        prioridade: prioridade.toLowerCase().replace("é", "e"), // Média -> media
-        anexo: urlAnexoFicticia, 
-        mimeTypeAnexo: arquivoSelecionado ? arquivoSelecionado.type : ""
+        titulo,
+        descricao,
+        categoria,
+        prioridade: prioridade.toLowerCase().replace("é", "e"),
+        anexo: urlAnexo,
+        mimeTypeAnexo
       });
 
-      navigate('/cliente'); // Volta para home
+      navigate('/cliente');
     } catch (error) {
       console.error("Erro ao criar chamado:", error);
       alert("Não foi possível criar o chamado.");
@@ -53,6 +84,7 @@ export default function NovoChamado() {
       setLoading(false);
     }
   };
+
   return (
     <Layout role="Cliente">
       <div className="new-ticket-container">
@@ -86,10 +118,10 @@ export default function NovoChamado() {
                 value={categoria} 
                 onChange={(e) => setCategoria(e.target.value)}
               >
-                <option value="Hardware">Hardware</option>
-                <option value="Software">Software</option>
-                <option value="Rede">Rede</option>
-                <option value="Acesso">Acesso</option>
+                {categoriasLista.length === 0 && <option value="Geral">Geral</option>}
+                {categoriasLista.map(cat => (
+                  <option key={cat.idCategoria} value={cat.nome}>{cat.nome}</option>
+                ))}
               </select>
             </div>
 
@@ -103,7 +135,6 @@ export default function NovoChamado() {
                 <option value="Baixa">Baixa</option>
                 <option value="Média">Média</option>
                 <option value="Alta">Alta</option>
-                <option value="Urgente">Urgente</option>
               </select>
             </div>
           </div>

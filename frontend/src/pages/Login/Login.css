@@ -4,85 +4,77 @@
   justify-content: center;
   min-height: 100vh;
   width: 100vw;
-  background-color: #141414; /* Fundo mais escuro do app */
+  background-color: var(--bg-main); /* Fundo cinza claro */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  color: #ffffff;
+  color: var(--text-main);
 }
 
 .login-card {
-  background-color: #242424; /* Fundo do card, levemente mais claro que o fundo geral */
-  border: 1px solid #333333;
-  border-radius: 12px;
+  background-color: var(--bg-card); /* Fundo branco */
+  border: 1px solid var(--border-color);
+  border-radius: 8px; /* Borda mais clássica */
   padding: 40px;
   width: 100%;
-  max-width: 380px;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-  animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-width: 400px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Soft shadow */
+  animation: fadeIn 0.4s ease forwards;
 }
 
-@keyframes fadeUp {
-  0% { opacity: 0; transform: translateY(20px); }
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 
 /* HEADER & LOGO */
 .login-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 16px;
+  margin-bottom: 32px;
+  text-align: center;
 }
 
 .logo-icon {
-  width: 32px;
-  height: 32px;
-  background-color: #0d6efd; /* Azul primary */
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: 1px solid var(--primary-color);
 }
 
-/* Criando o detalhe do ícone no CSS (2 quadradinhos) */
 .logo-squares {
-  width: 10px;
-  height: 6px;
-  background-color: #fff;
-  border-radius: 2px;
-  position: relative;
-  transform: translateX(-3px);
+  display: none;
 }
-.logo-squares::after {
-  content: '';
-  position: absolute;
-  width: 10px;
-  height: 6px;
-  background-color: rgba(255, 255, 255, 0.7);
-  border-radius: 2px;
-  right: -8px;
-  bottom: -4px;
+
+.logo-icon::after {
+  content: 'HD';
 }
 
 .login-header h1 {
-  font-size: 1.25rem;
-  font-weight: 500;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-main);
   margin: 0;
   letter-spacing: -0.02em;
 }
 
 .login-subtitle {
-  color: #9ca3af; /* Texto mutado */
-  font-size: 0.875rem;
-  margin-bottom: 24px;
-  margin-top: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
 }
 
 .error-box {
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background-color: var(--danger-light);
+  border: 1px solid var(--danger);
+  color: var(--danger);
   padding: 12px;
   border-radius: 6px;
   font-size: 0.85rem;
@@ -93,8 +85,8 @@
 /* TOGGLE CLIENTE/AGENTE */
 .account-type-toggle {
   display: flex;
-  background-color: #1a1a1a;
-  border: 1px solid #2e2e2e;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 4px;
   margin-bottom: 32px;
@@ -104,23 +96,25 @@
   flex: 1;
   background: transparent;
   border: none;
-  padding: 8px 0;
+  padding: 10px 0;
   border-radius: 6px;
-  color: #9ca3af;
-  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
 
 .toggle-btn:hover:not(.active) {
-  color: #ffffff;
+  color: var(--text-main);
+  background-color: rgba(0,0,0,0.02);
 }
 
 .toggle-btn.active {
-  background-color: #e8f0fe;
-  color: #0d6efd;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: var(--bg-card);
+  color: var(--primary-color);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  font-weight: 600;
 }
 
 /* FORMULÁRIO */
@@ -138,47 +132,47 @@
 
 .form-group label {
   font-size: 0.875rem;
-  color: #d1d5db;
+  font-weight: 500;
+  color: var(--text-main);
 }
 
 .form-group input {
-  background-color: #2a2a2a;
-  border: 1px solid #3c3c3c;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 12px;
-  color: #ffffff;
+  color: var(--text-main);
   font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
   font-family: inherit;
 }
 
 .form-group input::placeholder {
-  color: #6b7280;
+  color: #9ca3af;
 }
 
 .form-group input:focus {
-  border-color: #555555;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 /* BOTÃO ENTRAR */
 .login-submit-btn {
   margin-top: 8px;
-  background-color: #2a2a2a;
-  border: 1px solid #444;
+  background-color: var(--primary-color);
+  border: none;
   border-radius: 6px;
   color: #ffffff;
   padding: 12px;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .login-submit-btn:hover {
-  background-color: #333333;
-  border-color: #555;
+  background-color: var(--primary-hover);
 }
 
 .login-submit-btn:active {
@@ -187,20 +181,20 @@
 
 /* FOOTER / CADASTRO */
 .login-footer {
-  margin-top: 24px;
+  margin-top: 32px;
   text-align: center;
-  font-size: 0.85rem;
-  color: #9ca3af;
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }
 
 .login-footer a {
-  color: #3b82f6; /* Um botão link com azul bonito */
+  color: var(--primary-color);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   transition: color 0.2s ease;
 }
 
 .login-footer a:hover {
   text-decoration: underline;
-  color: #60a5fa;
+  color: var(--primary-hover);
 }

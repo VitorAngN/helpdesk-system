@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../../../components/Layout/Layout';
 import StatusBadge, { type StatusType } from '../../../components/StatusBadge/StatusBadge';
 import api from '../../../services/api';
+import { TicketUtils } from '../../../utils/TicketUtils';
 import './Dashboard.css';
 
 interface Chamado {
@@ -38,25 +39,14 @@ export default function AgenteDashboard() {
   const concluidos = chamados.filter(c => c.status === 'concluido').length;
   const urgentesAlta = chamados.filter(c => c.prioridade === 'urgente' || c.prioridade === 'alta').length;
 
-  let chamadosFiltrados = chamados;
+  // Filtra da visualização os chamados concluídos ou cancelados (Limpa a fila do agente)
+  let chamadosFiltrados = chamados.filter(c => c.status !== 'concluido' && c.status !== 'cancelado');
+  
   if(activeTab === 'Urgentes') {
-    chamadosFiltrados = chamados.filter(c => c.prioridade === 'urgente' || c.prioridade === 'alta');
+    chamadosFiltrados = chamadosFiltrados.filter(c => c.prioridade === 'urgente' || c.prioridade === 'alta');
   } else if(activeTab === 'Aguardando') {
-    chamadosFiltrados = chamados.filter(c => c.status === 'aguardando_cliente');
+    chamadosFiltrados = chamadosFiltrados.filter(c => c.status === 'aguardando_cliente');
   }
-
-  // Formata hora
-  const formatTimeAgo = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-  };
-
-  const converterLabelStatus = (status: string) => {
-    if(status === 'em_atendimento') return 'Em atendimento';
-    if(status === 'aguardando_cliente') return 'Aguardando';
-    if(status === 'concluido') return 'Concluído';
-    return 'Aberto';
-  };
 
   return (
     <Layout role="Agente">
@@ -90,7 +80,7 @@ export default function AgenteDashboard() {
               className={`tab-btn ${activeTab === 'Todos' ? 'active' : ''}`}
               onClick={() => setActiveTab('Todos')}
             >
-              Todos
+              Fila Ativa
             </button>
             <button 
               className={`tab-btn ${activeTab === 'Urgentes' ? 'active' : ''}`}
@@ -129,8 +119,8 @@ export default function AgenteDashboard() {
                     <span className="ticket-meta">Prioridade: {ticket.prioridade} · {ticket.status}</span>
                   </div>
                   <div className="ticket-status">
-                    <StatusBadge status={converterLabelStatus(ticket.status) as StatusType} />
-                    <span className="time-ago">{formatTimeAgo(ticket.createdAt)}</span>
+                    <StatusBadge status={TicketUtils.getStatusLabel(ticket.status) as StatusType} />
+                    <span className="time-ago">{TicketUtils.formatTime(ticket.createdAt)}</span>
                   </div>
                 </div>
               )

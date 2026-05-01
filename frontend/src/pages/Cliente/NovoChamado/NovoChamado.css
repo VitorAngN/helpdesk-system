@@ -1,8 +1,9 @@
 .new-ticket-container {
-  background-color: transparent;
-  border: 1px solid #3c3c3c;
-  border-radius: 12px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   padding: 32px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .page-header {
@@ -13,9 +14,9 @@
 }
 
 .back-btn {
-  background-color: #2a2a2a;
-  border: 1px solid #444;
-  color: #fff;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   width: 36px;
   height: 36px;
   border-radius: 8px;
@@ -27,15 +28,14 @@
 }
 
 .back-btn:hover {
-  background-color: #333;
-  border-color: #555;
-  color: #60a5fa;
+  background-color: var(--border-color);
+  color: var(--primary-color);
 }
 
 .page-header h2 {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #f9fafb;
+  color: var(--text-main);
   margin: 0;
 }
 
@@ -62,41 +62,42 @@
 }
 
 .form-group label {
-  font-size: 0.85rem;
-  color: #d1d5db;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  font-weight: 500;
 }
 
 /* COMPARTILHANDO ESTILOS DE INPUT/SELECT/TEXTAREA */
 .form-group input,
 .form-group select,
 .form-group textarea {
-  background-color: #2a2a2a;
-  border: 1px solid #3c3c3c;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 12px 16px;
-  color: #ffffff;
+  color: var(--text-main);
   font-size: 0.95rem;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: #555555;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .form-group select {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23374151%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 16px;
@@ -105,38 +106,40 @@
 
 .form-group textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 120px;
 }
 
 /* ÁREA DE DRAG & DROP */
 .upload-area {
-  border: 1px dashed #4b5563;
+  border: 2px dashed var(--border-color);
   border-radius: 8px;
   padding: 24px;
-  background-color: rgba(42, 42, 42, 0.5);
+  background-color: var(--bg-main);
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .upload-area:hover {
-  background-color: rgba(42, 42, 42, 0.8);
-  border-color: #6b7280;
+  background-color: var(--primary-light);
+  border-color: var(--border-focus);
 }
 
 .upload-area p {
   margin: 0 0 4px 0;
-  font-size: 0.9rem;
-  color: #d1d5db;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  font-weight: 500;
 }
 
 .link-click {
-  color: #3b82f6;
+  color: var(--primary-color);
 }
 
 .upload-hints {
-  font-size: 0.75rem !important;
-  color: #6b7280 !important;
+  font-size: 0.8rem !important;
+  color: var(--text-muted) !important;
+  font-weight: 400 !important;
 }
 
 /* BOTÕES DE AÇÃO */
@@ -149,34 +152,32 @@
 
 .btn-cancel {
   background-color: transparent;
-  border: 1px solid #444;
-  color: #d1d5db;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 10px 20px;
   border-radius: 8px;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-cancel:hover {
-  background-color: #2a2a2a;
-  color: #fff;
+  background-color: var(--bg-main);
 }
 
 .btn-submit {
-  background-color: #2a2a2a;
-  border: 1px solid #555;
+  background-color: var(--primary-color);
+  border: none;
   color: #ffffff;
-  padding: 10px 20px;
+  padding: 10px 24px;
   border-radius: 8px;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-submit:hover {
-  background-color: #333;
-  border-color: #666;
+  background-color: var(--primary-hover);
 }

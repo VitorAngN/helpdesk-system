@@ -1,139 +1,116 @@
-<h1 align="center">Sistema de Helpdesk e Gestão de Atendimentos</h1>
+<h1 align="center">HelpDesk Enterprise - Sistema de Gestão de Atendimentos</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-Finalizado-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
-  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" />
-  <img src="https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
-  <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" alt="JWT" />
+  <img src="https://img.shields.io/badge/Status-Concluído-success?style=flat-square" alt="Status" />
+  <img src="https://img.shields.io/badge/React-18-blue?style=flat-square" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-Linguagem-blue?style=flat-square" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Node.js-Backend-green?style=flat-square" alt="Node.js" />
+  <img src="https://img.shields.io/badge/Socket.io-Real--time-black?style=flat-square" alt="Socket.io" />
+  <img src="https://img.shields.io/badge/Prisma-ORM-white?style=flat-square" alt="Prisma" />
 </p>
 
-> [!NOTE]  
-> **Arquitetura Full-Stack Completada:**  
-> Este projeto foi concebido e finalizado como um MVP de um **Sistema de Helpdesk Corporativo**, contando com as duas pontas da tecnologia: API Relacional blindada com JWT no lado do Backend, e Interface de Usuário (*SPA*) construída do absoluto zero com React e Vite usando práticas profundas de UX/UI.
+---
+
+## Visão Geral
+
+O HelpDesk Enterprise é uma solução Full-Stack desenvolvida para centralizar e otimizar o fluxo de suporte técnico entre empresas e clientes. O projeto simula um ambiente corporativo real, implementando regras de negócio complexas, controle de acesso granular e comunicação instantânea.
+
+Este projeto foi construído com foco em escalabilidade e manutenibilidade, utilizando TypeScript em ambas as camadas para garantir a integridade dos dados e facilitar a identificação de erros em tempo de desenvolvimento.
 
 ---
 
-## Sobre o Projeto
+## Diferenciais Técnicos e Engenharia
 
-O **HelpDesk** é uma plataforma que otimiza a ponte entre clientes e a área de suporte especializado. Através deste painel, é possível registrar chamados (abrir tickets), monitorar em tempo real a evolução destes pedidos de suporte, e estabelecer uma conversa assíncrona — estilo chat — com o Analista/Agente designado. O sistema foi lapidado para entregar uma experiência premium, contando com painéis segmentados baseados no cargo de quem fez o Login.
+### Comunicação em Tempo Real (WebSockets)
+Diferente de sistemas que dependem de requisições HTTP constantes (polling), este projeto utiliza **Socket.io**. Isso permite uma comunicação bidirecional de baixa latência, onde mensagens de chat e notificações globais são entregues instantaneamente assim que ocorrem no servidor.
 
----
+### Gestão de Arquivos e Persistência
+Implementação de upload real de arquivos utilizando a biblioteca **Multer**. O sistema gerencia o ciclo de vida de anexos (PDFs e Imagens), tratando o armazenamento no servidor e vinculando os metadados às mensagens do chat e aos protocolos de abertura de chamados.
 
-## Interface do Sistema
+### Indicadores de Performance (SLA e CSAT)
+O sistema conta com um motor de analytics para administradores:
+- **SLA (Service Level Agreement):** Monitoramento automático do tempo entre a abertura e o fechamento do ticket, calculando a eficiência média da equipe.
+- **CSAT (Customer Satisfaction Score):** Sistema de avaliação pós-atendimento que permite medir o índice de satisfação do cliente final através de métricas quantitativas.
 
-### Acesso ao Sistema (Login e Cadastro)
-![Tela de Login](docs/login.png)
-![Tela de Cadastro](docs/register.png)
-
-### Experiência do Cliente
-![Dashboard do Cliente](docs/client-dashboard.png)
-![Histórico de Chamados](docs/client-history.png)
-![Chat de Atendimento](docs/client-chat.png)
-
-### Painel do Agente (Suporte)
-![Dashboard do Agente](docs/agent-dashboard.png)
-![Gerenciamento de Chamados](docs/agent-history.png)
-![Interface de Chat do Agente](docs/agent-chat.png)
-
-### Gestão Administrativa (Admin)
-![Dashboard do Admin](docs/admin-dashboard.png)
-![Gerenciamento de Empresas](docs/admin-companies.png)
-![Cadastro de Empresa](docs/admin-create-company.png)
-![Cadastro de Usuários e Perfis](docs/admin-create-user.png)
-
-### Abertura de Novo Chamado
-![Novo Chamado](docs/new-ticket.png)
+### Segurança e Governança
+- **RBAC (Role-Based Access Control):** Controle de acesso baseado em cargos (Admin, Agente, Cliente), validado por middlewares de segurança no Backend.
+- **Autenticação JWT:** Implementação de tokens de curta duração para sessões seguras, com senhas criptografadas via Bcrypt.
+- **Auditoria:** Logs detalhados de ações administrativas para rastreabilidade de eventos críticos.
 
 ---
 
-## Funcionalidades Implementadas
+## Stack Tecnológica
 
-### Segurança e Autenticação (JWT)
-- **Login Seguro & Rotas Protegidas:** Middlewares de Frontend e Backend verificam a assinatura de Tokens JWT para impedir manipulações. Senhas são salvas usando criptografia Hash (`bcrypt`).
-- **Roteamento Controlado por Níveis:** Três esferas de acesso (`Cliente`, `Agente`, `Admin`) com bloqueios totais em tela que previnem vazamento de escopo.
+### Backend (Infraestrutura)
+- **Runtime:** Node.js v20+
+- **Framework:** Express.js com TypeScript
+- **Banco de Dados:** MySQL 8.0
+- **ORM:** Prisma (Object-Relational Mapping)
+- **Protocolos:** Socket.io para WebSockets e Multer para Multipart/Form-Data
 
-### Experiências por Nível de Acesso
-- **Visão Cliente:** Possui um Dashboard amigável para acompanhar contatos abertos e visualizar seus protocolos e interagir no Chat do Suporte.
-- **Visão Agente:** Acessa uma Dashboard analítica, recebe as filas de atendimento do sistema de modo simultâneo, podendo alterar Status de chamados (Resolvido, Cancelado) e notificar o usuário. 
-- **Visão Admin:** Concentração e Governança de todo o Sistema. Painel para cadastro dinâmico de novas Empresas (B2B), Gestão total de Usuários/Agentes, além de visão integral aos dados do servidor.
-
-### Experiência de Chat "WhatsApp Style"
-A tela chave da ferramenta (o Contato Técnico) foi desenhada no modelo *Split Layout*. Do lado esquerdo a Sidebar de listagem de contatos filtráveis, do lado direito a bolha de interações baseada em mensagens instatâneas gravadas no MySQL.
-
-### Notificações Ativas
-O Cabeçalho (Header) principal varre ativamente eventos do usuário e apresenta "Badges" visuais informando Novas Respostas ou Atualizações no Status dos chamados, podendo ser limpas após leitura.
-
-### Controle Histórico (Auditoria)
-Todos os encerramentos de chamado não exluem dados, arquivam. Uma robusta rota em base de Tabela Genérica foi criada (`/historico`) para pesquisa massiva através de um filtro de Protocolos ou Assuntos em todo banco.
+### Frontend (Interface)
+- **Biblioteca:** React 18 com Vite
+- **Gerenciamento de Estado:** Context API para autenticação global e persistência de sessão.
+- **Estilização:** CSS Moderno (Vanilla) focado em performance e responsividade.
+- **Ícones e UI:** Lucide React para elementos visuais consistentes.
 
 ---
 
-## Tecnologias da Estiva
+## Arquitetura do Projeto
 
-### Camada Backend (API Rest API)
-- **Node.js** v24 com **Express.js** 
-- **Linguagem:** TypeScript Rigoroso
-- **ORM:** Prisma v6
-- **Banco de Dados:** MySQL 8 
-- **Segurança:** Autenticação por JWT (JSON Web Tokens)
-
-### Camada Frontend (Web Interface)
-- **Framework:** React 18 (Vite Bundler)
-- **Linguagem:** TypeScript
-- **Estilização UI:** Vanilla CSS Moderno (Glassmorphism, Flexbox, UI Dark Mode Centrada)
-- **Roteamento:** React Router Dom v7 
-- **Acessibilidade:** Lucide-React (Ícones)
-
----
-
-## Arquitetura do Workspace
+O workspace segue uma estrutura de separação de responsabilidades (SoC):
 
 ```text
 helpdesk-system/
 ├── backend/
-│   ├── prisma/             # Schema, Relacionamentos e Definição das Tabelas
-│   ├── src/                # Controladores Express, Roteamento e Inicialização Server
-│   ├── .env                # Credenciais Locais DB (Cuidado)
-│   ├── package.json
-│   └── tsconfig.json
-├── database/               # Relacionamentos Modelados / Arquivos Origem
+│   ├── prisma/             # Modelagem de dados e Migrations
+│   ├── src/                # Lógica de negócio, Rotas e Socket Server
+│   ├── uploads/            # Armazenamento físico de anexos
+│   └── package.json
 └── frontend/
-    ├── public/
-    └── src/
-        ├── components/     # Layout.tsx, Header.tsx, StatusBadge.tsx
-        ├── pages/          # 3 Fluxos de Telas: Cliente, Admin, Agente, Login, Historico...
-        ├── services/       # axios / api.ts e fetcher handlers
-        ├── contexts/       # AuthContext (Persistência global de sessão Storage/JWT)
-        └── App.tsx         # Roteador Local
+    ├── src/
+    │   ├── components/     # Componentes reutilizáveis (Layout, StatusBadge, Header)
+    │   ├── pages/          # Fluxos de visualização (Dashboard, Chat, Analytics)
+    │   ├── services/       # Integração com API (Axios e Socket Client)
+    │   └── contexts/       # Gerenciamento de estado de autenticação
 ```
 
 ---
 
-## Como Rodar e Testar na sua Máquina
+## Instruções de Instalação e Execução
 
-### Iniciando o Servidor (Backend)
-1. Instale o **Node.js v18+** e garanta que o seu Servidor MySQL Local (`localhost:3306`) esteja rodando na sua máquina.
-2. Acesse a parta do servidor: `cd backend`
-3. Instale os módulos: `npm install`
-4. Crie um arquivo oculto chamando `.env` na pasta `backend/` e injete sua string:
+### Pré-requisitos
+- Node.js instalado
+- Instância do MySQL rodando localmente
+
+### Configuração do Backend
+1. Navegue até a pasta: `cd backend`
+2. Instale as dependências: `npm install`
+3. Configure o arquivo `.env`:
    ```env
-   DATABASE_URL="mysql://root:SUASENHA@localhost:3306/helpdesk_system"
+   DATABASE_URL="mysql://USUARIO:SENHA@localhost:3306/helpdesk_system"
    JWT_SECRET="sua_chave_secreta"
    ```
-5. Inicie a base de Dados e as Tabelas do Prisma:
+4. Sincronize o Banco de Dados:
    ```bash
    npx prisma generate
    npx prisma db push
    ```
-6. Inicialize o cérebro: `npm run dev` 
-*(A Api passará a servir na rota http://localhost:3000)*
+5. Inicie o servidor: `npm run dev` (Porta padrão: 3000)
 
-### Inicializando as Telas (Frontend React)
-1. Abra um terminal separado e acesse o cliente pela raiz: `cd frontend`
-2. Instale as dependências visuais: `npm install`
-3. Inicie a compilação local pelo vite: `npm run dev`
-*(A aplicação vai pular na sua tela no seu localhost:5173 e você já pode criar contas novas na tela de Cadastro e testar).*
+### Configuração do Frontend
+1. Navegue até a pasta: `cd frontend`
+2. Instale as dependências: `npm install`
+3. Inicie a aplicação: `npm run dev` (Porta padrão: 5173)
+
+---
+
+## Demonstração Visual
+
+As capturas de tela abaixo demonstram o sistema em funcionamento (os arquivos de imagem devem ser colocados na pasta docs/):
+
+
+- **Login e Gestão de Acesso:** [docs/login.png]
+- **Dashboard Analítico (Admin):** [docs/admin-dashboard.png]
+- **Interface de Chat Real-time:** [docs/client-chat.png]
+- **Fluxo de Avaliação CSAT:** [docs/csat-stars.png]
