@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import Header from '../Header/Header';
+import Sidebar from '../Sidebar/Sidebar';
 import { AuthContext } from '../../contexts/AuthContext';
 import './Layout.css';
 
@@ -25,7 +26,8 @@ export default function Layout({ children, role }: LayoutProps) {
 
   return (
     <div className="layout-root">
-      <div className="layout-container">
+      <Sidebar />
+      <div className="layout-main">
         <Header 
           role={dynamicRole} 
           userName={usuario?.nome} 

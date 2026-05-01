@@ -4,6 +4,7 @@ import { Plus, FileText, Clock } from 'lucide-react';
 import api from '../../../services/api';
 import Layout from '../../../components/Layout/Layout';
 import StatusBadge, { type StatusType } from '../../../components/StatusBadge/StatusBadge';
+import { TicketUtils } from '../../../utils/TicketUtils';
 import './Home.css';
 
 // Interface do objeto no Banco de Dados
@@ -56,7 +57,10 @@ export default function ClienteHome() {
           </div>
         </button>
 
-        <button className="action-card open-tickets">
+        <button 
+          className="action-card open-tickets"
+          onClick={() => navigate('/historico', { state: { tab: 'Abertos' } })}
+        >
           <div className="card-icon-wrapper open">
             <FileText size={20} />
           </div>
@@ -66,7 +70,10 @@ export default function ClienteHome() {
           </div>
         </button>
 
-        <button className="action-card history">
+        <button 
+          className="action-card history"
+          onClick={() => navigate('/historico', { state: { tab: 'Geral' } })}
+        >
           <div className="card-icon-wrapper history-icon">
             <Clock size={20} />
           </div>
@@ -80,22 +87,26 @@ export default function ClienteHome() {
       <div className="recent-list-container">
         <div className="list-header">
           <h3>Chamados recentes</h3>
-          <a href="#" className="link-ver-todos">Ver todos</a>
+          <button 
+            className="link-ver-todos" 
+            onClick={() => navigate('/historico', { state: { tab: 'Geral' } })}
+            style={{background: 'transparent', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontWeight: 600}}
+          >
+            Ver todos
+          </button>
         </div>
 
         <div className="list-content">
           {carregando ? (
             <p className="loading-text">Carregando chamados...</p>
-          ) : chamados.length === 0 ? (
-            <p className="empty-text">Nenhum chamado encontrado.</p>
+          ) : chamados.filter(c => c.status !== 'concluido' && c.status !== 'cancelado').length === 0 ? (
+            <p className="empty-text">Nenhum chamado em aberto no momento.</p>
           ) : (
-            chamados.map((item) => {
-              // Converte status do bd (em_atendimento) para label visual (Em atendimento)
-              let labelStatus = item.status;
-              if(item.status === 'em_atendimento') labelStatus = 'Em atendimento';
-              if(item.status === 'aguardando_cliente') labelStatus = 'Aguardando';
-              if(item.status === 'aberto') labelStatus = 'Aberto';
-              if(item.status === 'concluido') labelStatus = 'Concluído';
+            chamados
+              .filter(c => c.status !== 'concluido' && c.status !== 'cancelado')
+              .slice(0, 5) // Mostra apenas os 5 mais recentes
+              .map((item) => {
+              const labelStatus = TicketUtils.getStatusLabel(item.status);
 
               return (
                 <div 

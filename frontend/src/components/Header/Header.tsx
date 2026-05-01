@@ -3,6 +3,7 @@ import { Bell, LogOut, ArchiveRestore, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import socket from '../../services/socket';
 import './Header.css';
 
 interface Notificacao {
@@ -20,7 +21,7 @@ interface HeaderProps {
 }
 
 export default function Header({ userName, userInitials = "U", role = "Cliente" }: HeaderProps) {
-  const { logout } = useContext(AuthContext);
+  const { logout, usuario } = useContext(AuthContext);
   const navigate = useNavigate();
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -28,6 +29,16 @@ export default function Header({ userName, userInitials = "U", role = "Cliente" 
   useEffect(() => {
     fetchNotificacoes();
   }, []);
+
+  // Escutar notificações em tempo real via socket
+  useEffect(() => {
+    if (!usuario?.idUsuario) return;
+    const eventKey = `notificacao_${usuario.idUsuario}`;
+    socket.on(eventKey, (novaNotif: Notificacao) => {
+      setNotificacoes(prev => [novaNotif, ...prev]);
+    });
+    return () => { socket.off(eventKey); };
+  }, [usuario?.idUsuario]);
 
   const fetchNotificacoes = async () => {
     try {
@@ -56,12 +67,8 @@ export default function Header({ userName, userInitials = "U", role = "Cliente" 
 
   return (
     <div className="header-container">
-      <div className="header-logo">
-        <div className="logo-icon-small">
-          <span className="logo-squares-small"></span>
-        </div>
-        <h2>HelpDesk {role === 'Admin' ? '- Admin' : role === 'Agente' ? '- Agente' : ''}</h2>
-      </div>
+      {/* O logo e o título foram movidos para a Sidebar */}
+      <div className="header-spacer"></div>
 
       <div className="header-actions">
         {role === 'Agente' && (
@@ -90,17 +97,31 @@ export default function Header({ userName, userInitials = "U", role = "Cliente" 
                   <p className="notif-empty">Você não tem notificações.</p>
                 ) : (
                   notificacoes.slice(0, 8).map(notif => (
-                    <div key={notif.idNotificacao} className={`notif-item ${notif.lida ? 'lida' : 'nao-lida'}`}>
-                      <div className="notif-content">
+                    <div 
+                      key={notif.idNotificacao} 
+                      className={`notif-item ${notif.lida ? 'lida' : 'nao-lida'}`}
+                    >
+                      <div 
+                        className="notif-content" 
+                        style={{ cursor: notif.idChamado ? 'pointer' : 'default' }}
+                        onClick={() => {
+                          if (!notif.lida) markAsRead(notif.idNotificacao);
+                          if (notif.idChamado) {
+                            setShowDropdown(false);
+                            navigate(`/chamado/${notif.idChamado}`);
+                          }
+                        }}
+                      >
                         <strong>
                           {notif.tipo === 'nova_mensagem' ? 'Nova Mensagem' : 
                            notif.tipo === 'novo_chamado' ? 'Novo Chamado' :
-                           notif.tipo === 'chamado_concluido' ? 'Chamado Concluído' : 'Aviso do Sistema'}
+                           notif.tipo === 'chamado_concluido' ? 'Chamado Concluído' : 
+                           notif.tipo === 'status_alterado' ? 'Status Alterado' : 'Aviso do Sistema'}
                         </strong>
                         {notif.idChamado && <span> Chamado #{notif.idChamado}</span>}
                       </div>
                       {!notif.lida && (
-                        <button className="notif-read-btn" onClick={() => markAsRead(notif.idNotificacao)} title="Marcar como Lido">
+                        <button className="notif-read-btn" onClick={(e) => { e.stopPropagation(); markAsRead(notif.idNotificacao); }} title="Marcar como Lido">
                           <Check size={14} />
                         </button>
                       )}

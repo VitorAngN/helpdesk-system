@@ -1,6 +1,6 @@
 import './StatusBadge.css';
 
-export type StatusType = 'Aberto' | 'Em atendimento' | 'Concluído' | 'Ativa' | 'Inativa';
+export type StatusType = 'Aberto' | 'Em atendimento' | 'Concluído' | 'Ativa' | 'Inativa' | 'Aguardando Cliente' | 'Cancelado';
 
 interface StatusBadgeProps {
   status: StatusType;

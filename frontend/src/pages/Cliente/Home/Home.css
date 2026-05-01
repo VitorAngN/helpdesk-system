@@ -6,12 +6,12 @@
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0 0 4px 0;
-  color: #f9fafb;
+  color: var(--text-main);
 }
 
 .greeting-subtitle {
   font-size: 0.95rem;
-  color: #9ca3af;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -24,10 +24,10 @@
 }
 
 .action-card {
-  background-color: transparent; /* Fundo invisivel, borda visivel */
-  border: 1px solid #3c3c3c;
-  border-radius: 12px;
-  padding: 16px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -35,17 +35,18 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .action-card:hover {
-  background-color: #2a2a2a;
-  border-color: #555;
+  border-color: var(--primary-light);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
   transform: translateY(-2px);
 }
 
 .card-icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -53,39 +54,40 @@
 }
 
 .card-icon-wrapper.new {
-  background-color: #e0e7ff; /* indigo-100 */
-  color: #3730a3; /* indigo-800 */
+  background-color: var(--primary-light);
+  color: var(--primary-color);
 }
 
 .card-icon-wrapper.open {
-  background-color: #ffedd5; /* orange-100 */
-  color: #9a3412; /* orange-800 */
+  background-color: var(--warning-light);
+  color: var(--warning);
 }
 
 .card-icon-wrapper.history-icon {
-  background-color: #d1fae5; /* emerald-100 */
-  color: #065f46; /* emerald-800 */
+  background-color: var(--success-light);
+  color: var(--success);
 }
 
 .card-texts h3 {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #f9fafb;
+  color: var(--text-main);
   margin: 0 0 4px 0;
 }
 
 .card-texts p {
-  font-size: 0.8rem;
-  color: #9ca3af;
+  font-size: 0.85rem;
+  color: var(--text-muted);
   margin: 0;
 }
 
 /* LISTA DE CHAMADOS RECENTES */
 .recent-list-container {
-  background-color: transparent;
-  border: 1px solid #3c3c3c;
-  border-radius: 12px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
   padding: 24px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .list-header {
@@ -98,18 +100,20 @@
 .list-header h3 {
   font-size: 1.1rem;
   font-weight: 600;
+  color: var(--text-main);
   margin: 0;
 }
 
 .link-ver-todos {
-  color: #3b82f6; /* azul */
+  color: var(--primary-color);
   text-decoration: none;
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .link-ver-todos:hover {
   text-decoration: underline;
+  color: var(--primary-hover);
 }
 
 .list-content {
@@ -121,13 +125,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid #333333;
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+  border-radius: 4px;
+}
+
+.list-item:hover {
+  background-color: var(--bg-main);
 }
 
 .list-item:last-child {
   border-bottom: none;
-  padding-bottom: 0;
 }
 
 .item-info {
@@ -138,19 +147,21 @@
 
 .item-id {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-muted);
   font-family: monospace;
+  font-weight: 600;
 }
 
 .item-title {
   font-size: 0.95rem;
-  color: #f9fafb;
+  font-weight: 500;
+  color: var(--text-main);
   margin: 0;
 }
 
 .loading-text, .empty-text {
   text-align: center;
-  color: #9ca3af;
+  color: var(--text-muted);
   padding: 32px 0;
   font-size: 0.95rem;
 }

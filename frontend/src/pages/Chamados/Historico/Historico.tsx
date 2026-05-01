@@ -1,9 +1,10 @@
 import { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Layout from '../../../components/Layout/Layout';
 import StatusBadge, { type StatusType } from '../../../components/StatusBadge/StatusBadge';
 import { AuthContext } from '../../../contexts/AuthContext';
 import api from '../../../services/api';
+import { TicketUtils } from '../../../utils/TicketUtils';
 import './Historico.css';
 
 interface Chamado {
@@ -18,10 +19,16 @@ interface Chamado {
 
 export default function Historico() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { usuario } = useContext(AuthContext);
+  
   const [chamados, setChamados] = useState<Chamado[]>([]);
   const [loading, setLoading] = useState(true);
   const [termoBusca, setTermoBusca] = useState('');
+  
+  // Lê a tab passada pelo state da rota, ou default para 'Abertos'
+  const initialTab = location.state?.tab || 'Abertos';
+  const [activeTab, setActiveTab] = useState<'Abertos' | 'Geral'>(initialTab);
 
   useEffect(() => {
     async function fetchHistorico() {
@@ -43,22 +50,14 @@ export default function Historico() {
     return 'Cliente';
   }
 
-  const formatData = (dataStr: string) => {
-    return new Date(dataStr).toLocaleDateString('pt-BR', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
+  // Primeiro filtra pela aba
+  let chamadosAba = chamados;
+  if (activeTab === 'Abertos') {
+    chamadosAba = chamados.filter(c => c.status !== 'concluido' && c.status !== 'cancelado');
   }
 
-  const converterLabelStatus = (status: string) => {
-    if(status === 'em_atendimento') return 'Em atendimento';
-    if(status === 'aguardando_cliente') return 'Aguardando';
-    if(status === 'concluido') return 'Concluído';
-    if(status === 'cancelado') return 'Cancelado';
-    return 'Aberto';
-  };
-
-  const chamadosFiltrados = chamados.filter(c => 
+  // Depois filtra pela busca
+  const chamadosFiltrados = chamadosAba.filter(c => 
     c.protocolo.toLowerCase().includes(termoBusca.toLowerCase()) || 
     c.titulo.toLowerCase().includes(termoBusca.toLowerCase())
   );
@@ -67,24 +66,43 @@ export default function Historico() {
     <Layout role={convertRole() as any}>
       <div className="historico-container">
         
-        <div className="historico-header">
-          <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
-            <button className="base-back-btn" onClick={() => navigate(-1)} style={{background: '#2a2a2a', border: '1px solid #444', color: '#fff', width: '36px', height: '36px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-              <span style={{fontSize: '18px', fontWeight: 'bold'}}>←</span>
-            </button>
-            <div>
-              <h2>Histórico Global de Chamados</h2>
-              <p>Consulte e acesse o registro completo de protocolos gerados.</p>
+        <div className="historico-header" style={{flexDirection: 'column', alignItems: 'flex-start', gap: '24px'}}>
+          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%'}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+              <button className="base-back-btn" onClick={() => navigate(-1)} style={{background: '#2a2a2a', border: '1px solid #444', color: '#fff', width: '36px', height: '36px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                <span style={{fontSize: '18px', fontWeight: 'bold'}}>←</span>
+              </button>
+              <div>
+                <h2>Meus Chamados</h2>
+                <p>Consulte e acesse o registro de protocolos.</p>
+              </div>
+            </div>
+            
+            <div className="search-box">
+              <input 
+                type="text" 
+                placeholder="Buscar NS/Protocolo ou Assunto..." 
+                value={termoBusca}
+                onChange={e => setTermoBusca(e.target.value)}
+              />
             </div>
           </div>
-          
-          <div className="search-box">
-            <input 
-              type="text" 
-              placeholder="Buscar NS/Protocolo ou Assunto..." 
-              value={termoBusca}
-              onChange={e => setTermoBusca(e.target.value)}
-            />
+
+          <div className="tabs-container" style={{display: 'flex', gap: '16px'}}>
+            <button 
+              className={`tab-btn ${activeTab === 'Abertos' ? 'active' : ''}`}
+              onClick={() => setActiveTab('Abertos')}
+              style={{padding: '8px 16px', background: activeTab === 'Abertos' ? 'var(--primary-light)' : 'transparent', color: activeTab === 'Abertos' ? 'var(--primary-color)' : 'var(--text-muted)', border: 'none', borderRadius: '8px', fontWeight: activeTab === 'Abertos' ? 600 : 500, cursor: 'pointer'}}
+            >
+              Em Aberto
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'Geral' ? 'active' : ''}`}
+              onClick={() => setActiveTab('Geral')}
+              style={{padding: '8px 16px', background: activeTab === 'Geral' ? 'var(--primary-light)' : 'transparent', color: activeTab === 'Geral' ? 'var(--primary-color)' : 'var(--text-muted)', border: 'none', borderRadius: '8px', fontWeight: activeTab === 'Geral' ? 600 : 500, cursor: 'pointer'}}
+            >
+              Histórico Geral
+            </button>
           </div>
         </div>
 
@@ -107,7 +125,7 @@ export default function Historico() {
                 {chamadosFiltrados.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{textAlign: 'center', padding: '32px', color: '#6b7280'}}>
-                      Nenhum registro encontrado.
+                      Nenhum registro encontrado nesta categoria.
                     </td>
                   </tr>
                 ) : (
@@ -119,9 +137,9 @@ export default function Historico() {
                         <span className={`p-badge p-${c.prioridade}`}>{c.prioridade}</span>
                       </td>
                       <td>
-                        <StatusBadge status={converterLabelStatus(c.status) as StatusType} />
+                        <StatusBadge status={TicketUtils.getStatusLabel(c.status) as StatusType} />
                       </td>
-                      <td className="t-data">{formatData(c.createdAt)}</td>
+                      <td className="t-data">{TicketUtils.formatDateTime(c.createdAt)}</td>
                       <td>
                         <button 
                           className="t-btn-view"
