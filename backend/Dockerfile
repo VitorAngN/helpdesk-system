@@ -16,11 +16,8 @@ RUN npx prisma generate
 # Copiar o restante do código-fonte
 COPY . .
 
-# Construir a aplicação (Transpilar TypeScript)
-RUN npm run build
-
 # Expor a porta que o servidor Node escuta
 EXPOSE 3000
 
 # Comando para iniciar o servidor
-CMD ["npm", "start"]
+CMD ["npx", "tsx", "src/server.ts"]
