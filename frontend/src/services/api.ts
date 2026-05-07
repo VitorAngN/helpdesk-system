@@ -1,6 +1,14 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`;
+const getBackendUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && !envUrl.includes('localhost')) {
+    return envUrl;
+  }
+  return `http://${window.location.hostname}:3000`;
+};
+
+const API_URL = getBackendUrl();
 
 const api = axios.create({
   baseURL: `${API_URL}/api`, // Rota do nosso backend Express

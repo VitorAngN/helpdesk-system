@@ -1,6 +1,14 @@
 import { io } from 'socket.io-client';
 
-const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`;
+const getBackendUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && !envUrl.includes('localhost')) {
+    return envUrl;
+  }
+  return `http://${window.location.hostname}:3000`;
+};
+
+const API_URL = getBackendUrl();
 
 // Instância global do socket, conectada ao backend
 const socket = io(API_URL, {
