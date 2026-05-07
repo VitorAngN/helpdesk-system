@@ -4,18 +4,21 @@
   <img src="https://img.shields.io/badge/Status-Concluído-success?style=flat-square" alt="Status" />
   <img src="https://img.shields.io/badge/React-18-blue?style=flat-square" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-Linguagem-blue?style=flat-square" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Node.js-Backend-green?style=flat-square" alt="Node.js" />
-  <img src="https://img.shields.io/badge/Socket.io-Real--time-black?style=flat-square" alt="Socket.io" />
-  <img src="https://img.shields.io/badge/Prisma-ORM-white?style=flat-square" alt="Prisma" />
+  <img src="https://img.shields.io/badge/Docker-Conteinerização-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/AWS_EC2-Deploy-FF9900?style=flat-square&logo=amazonaws&logoColor=white" alt="AWS EC2" />
+  <img src="https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?style=flat-square&logo=github-actions&logoColor=white" alt="GitHub Actions" />
+  <img src="https://img.shields.io/badge/Linux-Infra-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux" />
+  <img src="https://img.shields.io/badge/Node.js-Backend-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL" />
 </p>
 
 ---
 
 ## Visão Geral
 
-O HelpDesk Enterprise é uma solução Full-Stack desenvolvida para centralizar e otimizar o fluxo de suporte técnico entre empresas e clientes. O projeto simula um ambiente corporativo real, implementando regras de negócio complexas, controle de acesso granular e comunicação instantânea.
+Sistema de gestão de chamados. Destaque para a infraestrutura da aplicação, que foi totalmente conteinerizada com Docker e provisionada em ambiente Linux num servidor AWS EC2. Implementação de pipeline de CI/CD via GitHub Actions para validação automatizada de código.
 
-Este projeto foi construído com foco em escalabilidade e manutenibilidade, utilizando TypeScript em ambas as camadas para garantir a integridade dos dados e facilitar a identificação de erros em tempo de desenvolvimento.
+Este projeto foi construído com foco em escalabilidade e manutenibilidade, utilizando TypeScript em ambas as camadas e orquestração de containers para facilitar o provisionamento de infraestrutura.
 
 ---
 
@@ -79,11 +82,28 @@ helpdesk-system/
 
 ## Instruções de Instalação e Execução
 
-### Pré-requisitos
+### Opção 1: Via Docker Compose (Recomendado)
+
+A infraestrutura completa da aplicação foi desenhada para subir com um único comando.
+
+1. Instale o Docker e o Docker Compose.
+2. Na raiz do repositório, rode o comando:
+   ```bash
+   docker-compose up -d --build
+   ```
+3. Acesse a aplicação:
+   - **Frontend:** http://localhost
+   - **Backend API:** http://localhost:3000
+
+---
+
+### Opção 2: Desenvolvimento Local (Manual)
+
+#### Pré-requisitos
 - Node.js instalado
 - Instância do MySQL rodando localmente
 
-### Configuração do Backend
+#### Configuração do Backend
 1. Navegue até a pasta: `cd backend`
 2. Instale as dependências: `npm install`
 3. Configure o arquivo `.env`:
@@ -98,7 +118,7 @@ helpdesk-system/
    ```
 5. Inicie o servidor: `npm run dev` (Porta padrão: 3000)
 
-### Configuração do Frontend
+#### Configuração do Frontend
 1. Navegue até a pasta: `cd frontend`
 2. Instale as dependências: `npm install`
 3. Inicie a aplicação: `npm run dev` (Porta padrão: 5173)

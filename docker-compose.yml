@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: helpdesk_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: helpdesk_system
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: helpdesk_backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      # Modifique isso para as credenciais reais se necessário
+      DATABASE_URL: "mysql://root:root@db:3306/helpdesk_system"
+      JWT_SECRET: "my_super_secret_jwt_key_for_helpdesk"
+    ports:
+      - "3000:3000"
+    volumes:
+      - backend_uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: helpdesk_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  db_data:
+  backend_uploads:
