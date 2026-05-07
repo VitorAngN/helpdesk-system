@@ -39,11 +39,9 @@ jobs:
         working-directory: ./backend
         run: npm ci
 
-      - name: Prisma Generate & Build Backend
+      - name: Prisma Generate
         working-directory: ./backend
-        run: |
-          npx prisma generate
-          npm run build
+        run: npx prisma generate
 
       # Docker Verification
       - name: Test Docker Compose Build
