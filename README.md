@@ -44,14 +44,20 @@ O sistema conta com um motor de analytics para administradores:
 
 ## Stack Tecnológica
 
-### Backend (Infraestrutura)
+### Infraestrutura & DevOps
+- **Conteinerização:** Docker com Docker Compose para orquestração de serviços (Frontend, Backend, MySQL)
+- **Cloud:** AWS EC2 (Ubuntu 24.04 LTS) para provisionamento do ambiente de produção
+- **CI/CD:** GitHub Actions com pipeline automatizado de validação, lint e build
+- **Servidor Web:** Nginx (Alpine) servindo o frontend via Multi-stage Build
+
+### Backend
 - **Runtime:** Node.js v20+
 - **Framework:** Express.js com TypeScript
 - **Banco de Dados:** MySQL 8.0
 - **ORM:** Prisma (Object-Relational Mapping)
 - **Protocolos:** Socket.io para WebSockets e Multer para Multipart/Form-Data
 
-### Frontend (Interface)
+### Frontend
 - **Biblioteca:** React 18 com Vite
 - **Gerenciamento de Estado:** Context API para autenticação global e persistência de sessão.
 - **Estilização:** CSS Moderno (Vanilla) focado em performance e responsividade.
@@ -61,21 +67,25 @@ O sistema conta com um motor de analytics para administradores:
 
 ## Arquitetura do Projeto
 
-O workspace segue uma estrutura de separação de responsabilidades (SoC):
-
 ```text
 helpdesk-system/
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # Pipeline CI/CD (GitHub Actions)
 ├── backend/
-│   ├── prisma/             # Modelagem de dados e Migrations
-│   ├── src/                # Lógica de negócio, Rotas e Socket Server
-│   ├── uploads/            # Armazenamento físico de anexos
+│   ├── prisma/                 # Modelagem de dados e Migrations
+│   ├── src/                    # Lógica de negócio, Rotas e Socket Server
+│   ├── uploads/                # Armazenamento físico de anexos
+│   ├── Dockerfile              # Imagem Docker do Backend (Node.js Alpine)
 │   └── package.json
-└── frontend/
-    ├── src/
-    │   ├── components/     # Componentes reutilizáveis (Layout, StatusBadge, Header)
-    │   ├── pages/          # Fluxos de visualização (Dashboard, Chat, Analytics)
-    │   ├── services/       # Integração com API (Axios e Socket Client)
-    │   └── contexts/       # Gerenciamento de estado de autenticação
+├── frontend/
+│   ├── src/
+│   │   ├── components/         # Componentes reutilizáveis (Layout, StatusBadge, Header)
+│   │   ├── pages/              # Fluxos de visualização (Dashboard, Chat, Analytics)
+│   │   ├── services/           # Integração com API (Axios e Socket Client)
+│   │   └── contexts/           # Gerenciamento de estado de autenticação
+│   └── Dockerfile              # Imagem Docker do Frontend (Multi-stage + Nginx)
+└── docker-compose.yml          # Orquestração dos serviços (Frontend, Backend, MySQL)
 ```
 
 ---
