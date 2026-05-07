@@ -1,7 +1,9 @@
 import { io } from 'socket.io-client';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 // Instância global do socket, conectada ao backend
-const socket = io('http://localhost:3000', {
+const socket = io(API_URL, {
     autoConnect: true,
     reconnection: true,
     reconnectionAttempts: 5,
