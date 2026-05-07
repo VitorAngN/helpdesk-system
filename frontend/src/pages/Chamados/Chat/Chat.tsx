@@ -267,11 +267,11 @@ export default function Chat() {
                         {msg.anexo && (
                           <div style={{marginTop: '8px'}}>
                             {isImage ? (
-                              <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${msg.anexo}`} target="_blank" rel="noreferrer">
-                                <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${msg.anexo}`} alt="anexo" style={{maxWidth: '220px', borderRadius: '8px', display: 'block'}} />
+                              <a href={`${import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`}${msg.anexo}`} target="_blank" rel="noreferrer">
+                                <img src={`${import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`}${msg.anexo}`} alt="anexo" style={{maxWidth: '220px', borderRadius: '8px', display: 'block'}} />
                               </a>
                             ) : (
-                              <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${msg.anexo}`} target="_blank" rel="noreferrer" style={{color: 'var(--primary-color)', fontSize: '0.85rem'}}>📎 Ver Anexo</a>
+                              <a href={`${import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`}${msg.anexo}`} target="_blank" rel="noreferrer" style={{color: 'var(--primary-color)', fontSize: '0.85rem'}}>📎 Ver Anexo</a>
                             )}
                           </div>
                         )}
