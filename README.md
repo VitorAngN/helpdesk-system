@@ -137,10 +137,37 @@ A infraestrutura completa da aplicação foi desenhada para subir com um único 
 
 ## Demonstração Visual
 
-As capturas de tela abaixo demonstram o sistema em funcionamento (os arquivos de imagem devem ser colocados na pasta docs/):
+Abaixo você confere o sistema em funcionamento, dividido pelos níveis de acesso da plataforma:
 
+### Autenticação e Registro
+| Login | Cadastro |
+| :---: | :---: |
+| <img src="docs/login.png" width="400"/> | <img src="docs/register.png" width="400"/> |
 
-- **Login e Gestão de Acesso:** [docs/login.png]
-- **Dashboard Analítico (Admin):** [docs/admin-dashboard.png]
-- **Interface de Chat Real-time:** [docs/client-chat.png]
-- **Fluxo de Avaliação CSAT:** [docs/csat-stars.png]
+### Visão do Cliente (Abertura e Acompanhamento)
+| Dashboard do Cliente | Novo Chamado |
+| :---: | :---: |
+| <img src="docs/client-dashboard.png" width="400"/> | <img src="docs/new-ticket.png" width="400"/> |
+
+| Chat em Tempo Real (Cliente) | Histórico de Protocolos |
+| :---: | :---: |
+| <img src="docs/client-chat.png" width="400"/> | <img src="docs/client-history.png" width="400"/> |
+
+### Visão do Agente (Atendimento Operacional)
+| Dashboard do Agente | Histórico do Agente |
+| :---: | :---: |
+| <img src="docs/agent-dashboard.png" width="400"/> | <img src="docs/agent-history.png" width="400"/> |
+
+**Chat de Atendimento:**
+<img src="docs/agent-chat.png" width="800"/>
+
+### Visão do Administrador (Gestão Enterprise)
+**Dashboard Analítico (SLA e CSAT):**
+<img src="docs/admin-dashboard.png" width="800"/>
+
+| Gestão de Usuários | Gestão de Empresas |
+| :---: | :---: |
+| <img src="docs/admin-create-user.png" width="400"/> | <img src="docs/admin-create-company.png" width="400"/> |
+
+**Configurações do Sistema:**
+<img src="docs/admin-configs.png" width="800"/>
