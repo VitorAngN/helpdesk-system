@@ -171,3 +171,4 @@ Abaixo você confere o sistema em funcionamento, dividido pelos níveis de acess
 
 **Configurações do Sistema:**
 <img src="docs/admin-configs.png" width="800"/>
+<img src="https://komarev.com/ghpvc/?username=VitorAngN-helpdesk-system" width="1" height="1" alt="" />
