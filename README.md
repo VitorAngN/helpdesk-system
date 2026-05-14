@@ -16,7 +16,7 @@
 
 ## Visão Geral
 
-Sistema de gestão de chamados. Destaque para a infraestrutura da aplicação, que foi totalmente conteinerizada com Docker e provisionada em ambiente Linux num servidor AWS EC2. Implementação de pipeline de CI/CD via GitHub Actions para validação automatizada de código.
+Sistema de gestão de chamados. Destaque para a infraestrutura da aplicação, que foi totalmente conteinerizada com Docker e provisionada em ambiente Linux num servidor AWS EC2. Implementação de pipeline de CI via GitHub Actions para validação automatizada de código (lint, build e Docker build).
 
 Este projeto foi construído com foco em escalabilidade e manutenibilidade, utilizando TypeScript em ambas as camadas e orquestração de containers para facilitar o provisionamento de infraestrutura.
 
@@ -47,7 +47,7 @@ O sistema conta com um motor de analytics para administradores:
 ### Infraestrutura & DevOps
 - **Conteinerização:** Docker com Docker Compose para orquestração de serviços (Frontend, Backend, MySQL)
 - **Cloud:** AWS EC2 (Ubuntu 24.04 LTS) para provisionamento do ambiente de produção
-- **CI/CD:** GitHub Actions com pipeline automatizado de validação, lint e build
+- **CI:** GitHub Actions com pipeline automatizado (lint, type-check e Docker build) · Deploy manual validado em AWS EC2
 - **Servidor Web:** Nginx (Alpine) servindo o frontend via Multi-stage Build
 
 ### Backend
@@ -171,5 +171,9 @@ Abaixo você confere o sistema em funcionamento, dividido pelos níveis de acess
 
 **Configurações do Sistema:**
 <img src="docs/admin-configs.png" width="800"/>
+
+### Ambiente de Produção (AWS EC2)
+**Acesso via SSH e monitoramento do servidor:**
+<img src="docs/Terminal%20na%20AWS.png" width="800"/>
 
 <img src="https://komarev.com/ghpvc/?username=VitorAngN-helpdesk-system" width="1" height="1" alt="" />

@@ -4,8 +4,8 @@ services:
     container_name: helpdesk_mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: helpdesk_system
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-helpdesk_system}
     ports:
       - "3306:3306"
     volumes:
@@ -26,8 +26,8 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: "mysql://root:root@db:3306/helpdesk_system"
-      JWT_SECRET: "my_super_secret_jwt_key_for_helpdesk"
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "3000:3000"
     volumes:
