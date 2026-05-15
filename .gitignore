@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+
+.env
+.env.*
+!.env.example
+
+backend/node_modules/
+backend/dist/
+backend/uploads/
+frontend/node_modules/
+frontend/dist/
+
+# Duplicate local copy kept outside the tracked project scope.
+helpdesk-system/
