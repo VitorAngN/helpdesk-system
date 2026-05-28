@@ -1,12 +1,12 @@
-<h1 align="center">HelpDesk Enterprise - Sistema de Gestão de Atendimentos</h1>
+<h1 align="center">Helpdesk Corporativo - Projeto Autoral de Gestão de Chamados</h1>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Concluído-success?style=flat-square" alt="Status" />
   <img src="https://img.shields.io/badge/React-18-blue?style=flat-square" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-Linguagem-blue?style=flat-square" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Docker-Conteinerização-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/AWS_EC2-Deploy-FF9900?style=flat-square&logo=amazonaws&logoColor=white" alt="AWS EC2" />
-  <img src="https://img.shields.io/badge/GitHub_Actions-CI/CD-2088FF?style=flat-square&logo=github-actions&logoColor=white" alt="GitHub Actions" />
+  <img src="https://img.shields.io/badge/AWS_EC2-Deploy_validado-FF9900?style=flat-square&logo=amazonaws&logoColor=white" alt="AWS EC2" />
+  <img src="https://img.shields.io/badge/GitHub_Actions-CI-2088FF?style=flat-square&logo=github-actions&logoColor=white" alt="GitHub Actions" />
   <img src="https://img.shields.io/badge/Linux-Infra-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux" />
   <img src="https://img.shields.io/badge/Node.js-Backend-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL" />
@@ -16,9 +16,9 @@
 
 ## Visão Geral
 
-Sistema de gestão de chamados. Destaque para a infraestrutura da aplicação, que foi totalmente conteinerizada com Docker e provisionada em ambiente Linux num servidor AWS EC2. Implementação de pipeline de CI via GitHub Actions para validação automatizada de código (lint, build e Docker build).
+Sistema de gestão de chamados para simular um fluxo real de suporte técnico. O projeto foi conteinerizado com Docker e validado em ambiente Linux em uma instância AWS EC2. Também conta com pipeline de CI via GitHub Actions para validação automatizada de código (lint, build e Docker build).
 
-Este projeto foi construído com foco em escalabilidade e manutenibilidade, utilizando TypeScript em ambas as camadas e orquestração de containers para facilitar o provisionamento de infraestrutura.
+Este projeto foi construído com foco em organização, manutenção e execução reproduzível, utilizando TypeScript em ambas as camadas e Docker Compose para facilitar a inicialização do ambiente.
 
 ---
 
@@ -35,7 +35,7 @@ O sistema conta com um motor de analytics para administradores:
 - **SLA (Service Level Agreement):** Monitoramento automático do tempo entre a abertura e o fechamento do ticket, calculando a eficiência média da equipe.
 - **CSAT (Customer Satisfaction Score):** Sistema de avaliação pós-atendimento que permite medir o índice de satisfação do cliente final através de métricas quantitativas.
 
-### Segurança e Governança
+### Segurança e Controle de Acesso
 - **RBAC (Role-Based Access Control):** Controle de acesso baseado em cargos (Admin, Agente, Cliente), validado por middlewares de segurança no Backend.
 - **Autenticação JWT:** Implementação de tokens de curta duração para sessões seguras, com senhas criptografadas via Bcrypt.
 - **Auditoria:** Logs detalhados de ações administrativas para rastreabilidade de eventos críticos.
@@ -46,8 +46,8 @@ O sistema conta com um motor de analytics para administradores:
 
 ### Infraestrutura & DevOps
 - **Conteinerização:** Docker com Docker Compose para orquestração de serviços (Frontend, Backend, MySQL)
-- **Cloud:** AWS EC2 (Ubuntu 24.04 LTS) para provisionamento do ambiente de produção
-- **CI:** GitHub Actions com pipeline automatizado (lint, type-check e Docker build) · Deploy manual validado em AWS EC2
+- **Cloud:** AWS EC2 (Ubuntu 24.04 LTS) para validação prática de deploy em ambiente Linux
+- **CI:** GitHub Actions com pipeline automatizado (lint, type-check e Docker build) · deploy manual validado em AWS EC2
 - **Servidor Web:** Nginx (Alpine) servindo o frontend via Multi-stage Build
 
 ### Backend
@@ -71,7 +71,7 @@ O sistema conta com um motor de analytics para administradores:
 helpdesk-system/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml              # Pipeline CI/CD (GitHub Actions)
+│       └── ci.yml              # Pipeline CI (GitHub Actions)
 ├── backend/
 │   ├── prisma/                 # Modelagem de dados e Migrations
 │   ├── src/                    # Lógica de negócio, Rotas e Socket Server
@@ -161,7 +161,7 @@ Abaixo você confere o sistema em funcionamento, dividido pelos níveis de acess
 **Chat de Atendimento:**
 <img src="docs/agent-chat.png" width="800"/>
 
-### Visão do Administrador (Gestão Enterprise)
+### Visão do Administrador (Gestão do Sistema)
 **Dashboard Analítico (SLA e CSAT):**
 <img src="docs/admin-dashboard.png" width="800"/>
 
@@ -172,7 +172,7 @@ Abaixo você confere o sistema em funcionamento, dividido pelos níveis de acess
 **Configurações do Sistema:**
 <img src="docs/admin-configs.png" width="800"/>
 
-### Ambiente de Produção (AWS EC2)
+### Validação em AWS EC2
 **Acesso via SSH e monitoramento do servidor:**
 <img src="docs/Terminal%20na%20AWS.png" width="800"/>
 
