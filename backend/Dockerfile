@@ -19,5 +19,5 @@ COPY . .
 # Expor a porta que o servidor Node escuta
 EXPOSE 3000
 
-# Comando para iniciar o servidor
-CMD ["npx", "tsx", "src/server.ts"]
+# Sincroniza o schema Prisma com o MySQL antes de iniciar o servidor
+CMD ["sh", "-c", "until npx prisma db push; do echo 'Aguardando banco de dados...'; sleep 5; done; npx tsx src/server.ts"]

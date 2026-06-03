@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Paperclip, Search, Menu, Home, CheckCircle, XCircle, Star, X, Clock } from 'lucide-react';
 import api from '../../../services/api';
 import socket from '../../../services/socket';
-import { AuthContext } from '../../../contexts/AuthContext';
+import { AuthContext } from '../../../contexts/AuthContextValue';
 import Layout from '../../../components/Layout/Layout';
 import StatusBadge, { type StatusType } from '../../../components/StatusBadge/StatusBadge';
 import { TicketUtils } from '../../../utils/TicketUtils';
@@ -11,6 +11,10 @@ import './Chat.css';
 
 interface Mensagem { idMensagem: number; idRemetente: number; mensagem: string; createdAt: string; anexo?: string; mimeTypeAnexo?: string; }
 interface ChamadoResumo { idChamado: number; protocolo: string; titulo: string; status: string; createdAt: string; }
+interface ChamadoDetalhe extends ChamadoResumo { idAgente?: number | null; avaliacao?: number | null; }
+interface Macro { idMacro: number; titulo: string; texto: string; }
+interface AgenteOption { idAgente: number; idUsuario: number; nome: string; email: string; cargo: string; disponivel: boolean; }
+type ApiError = { response?: { data?: { error?: string } } };
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -19,7 +23,7 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [listaChamados, setListaChamados] = useState<ChamadoResumo[]>([]);
-  const [chamadoAtivo, setChamadoAtivo] = useState<any>(null);
+  const [chamadoAtivo, setChamadoAtivo] = useState<ChamadoDetalhe | null>(null);
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [novaMensagem, setNovaMensagem] = useState('');
   const [termoBuscaSidebar, setTermoBuscaSidebar] = useState('');
@@ -27,8 +31,8 @@ export default function Chat() {
   const [loadingChat, setLoadingChat] = useState(false);
 
   // Extras do Admin/Agente
-  const [macros, setMacros] = useState<any[]>([]);
-  const [agentes, setAgentes] = useState<any[]>([]);
+  const [macros, setMacros] = useState<Macro[]>([]);
+  const [agentes, setAgentes] = useState<AgenteOption[]>([]);
   const [showMacros, setShowMacros] = useState(false);
 
   // Upload
@@ -93,7 +97,7 @@ export default function Chat() {
         const [chamRes, msgRes] = await Promise.all([api.get(`/chamados/${id}`), api.get(`/chamados/${id}/mensagens`)]);
         setChamadoAtivo(chamRes.data); setMensagens(msgRes.data);
         if (chamRes.data.avaliacao) setAvaliacaoEnviada(true);
-      } catch (err) { setChamadoAtivo(null); } finally { setLoadingChat(false); }
+      } catch { setChamadoAtivo(null); } finally { setLoadingChat(false); }
     }
     loadChat();
   }, [id]);
@@ -113,7 +117,7 @@ export default function Chat() {
         urlAnexo = resUpload.data.url;
         mimeTypeAnexo = resUpload.data.mimeType;
         setArquivoAnexo(null);
-      } catch (err) { alert('Erro ao enviar o arquivo.'); return; }
+      } catch { alert('Erro ao enviar o arquivo.'); return; }
     }
 
     if (!novaMensagem.trim() && !urlAnexo) return;
@@ -141,25 +145,26 @@ export default function Chat() {
     if (!window.confirm(`Tem certeza que deseja marcar como "${TicketUtils.getStatusLabel(novoStatus)}"?`)) return;
     try {
       await api.patch(`/chamados/${id}/status`, { status: novoStatus });
-      setChamadoAtivo((prev: any) => ({ ...prev, status: novoStatus }));
-    } catch (err: any) {
-      alert(err.response?.data?.error || "Erro ao atualizar o status.");
+      setChamadoAtivo(prev => prev ? ({ ...prev, status: novoStatus }) : prev);
+    } catch (err) {
+      const apiError = err as ApiError;
+      alert(apiError.response?.data?.error || "Erro ao atualizar o status.");
     }
   };
 
   const handleAtribuir = async (agenteId: string) => {
     try {
       await api.patch(`/chamados/${id}/atribuir`, { idAgente: agenteId ? parseInt(agenteId) : null });
-      setChamadoAtivo((prev: any) => ({ ...prev, idAgente: agenteId ? parseInt(agenteId) : null }));
-    } catch(err) { alert("Erro ao atribuir chamado."); }
+      setChamadoAtivo(prev => prev ? ({ ...prev, idAgente: agenteId ? parseInt(agenteId) : null }) : prev);
+    } catch { alert("Erro ao atribuir chamado."); }
   };
 
   const handleAvaliar = async (nota: number) => {
     try {
       await api.patch(`/chamados/${id}/avaliar`, { avaliacao: nota });
-      setChamadoAtivo((prev: any) => ({ ...prev, avaliacao: nota }));
+      setChamadoAtivo(prev => prev ? ({ ...prev, avaliacao: nota }) : prev);
       setAvaliacaoEnviada(true);
-    } catch(err) { alert("Erro ao registrar avaliação."); }
+    } catch { alert("Erro ao registrar avaliação."); }
   };
 
   const handleHomeBtn = () => {
@@ -220,7 +225,7 @@ export default function Chat() {
                   {usuario?.nivelAcesso === 'admin' && chamadoAtivo.status !== 'concluido' && chamadoAtivo.status !== 'cancelado' && (
                     <select value={chamadoAtivo.idAgente || ''} onChange={(e) => handleAtribuir(e.target.value)} style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
                       <option value="">Sem Atribuição</option>
-                      {agentes.map(a => <option key={a.idUsuario} value={a.idUsuario}>{a.nome}</option>)}
+                      {agentes.map(a => <option key={a.idAgente} value={a.idAgente}>{a.nome}</option>)}
                     </select>
                   )}
                   {chamadoAtivo.status !== 'concluido' && chamadoAtivo.status !== 'cancelado' && (

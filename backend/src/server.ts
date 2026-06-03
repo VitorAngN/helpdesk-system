@@ -12,6 +12,57 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 
+type NivelAcessoJwt = 'cliente' | 'agente' | 'admin';
+
+type UsuarioLogado = {
+    idUsuario: number;
+    nivelAcesso: NivelAcessoJwt;
+};
+
+type RequestAutenticada = Request & {
+    usuarioLogado?: UsuarioLogado;
+};
+
+const getUsuarioLogado = (req: Request): UsuarioLogado => {
+    return (req as RequestAutenticada).usuarioLogado as UsuarioLogado;
+};
+
+const parseIdParam = (req: Request, res: Response, paramName = 'id'): number | null => {
+    const rawId = req.params[paramName];
+    if (typeof rawId !== 'string') {
+        res.status(400).json({ error: "ID invalido" });
+        return null;
+    }
+
+    const id = Number.parseInt(rawId, 10);
+    if (Number.isNaN(id)) {
+        res.status(400).json({ error: "ID invalido" });
+        return null;
+    }
+
+    return id;
+};
+
+const formatAgente = (agente: {
+    idAgente: number;
+    idUsuario: number;
+    idEmpresa: number;
+    cargo: string;
+    disponivel: boolean;
+    usuario: { nome: string; email: string; nivelAcesso: string };
+    empresa: { nome: string };
+}) => ({
+    idAgente: agente.idAgente,
+    idUsuario: agente.idUsuario,
+    idEmpresa: agente.idEmpresa,
+    cargo: agente.cargo,
+    disponivel: agente.disponivel,
+    nome: agente.usuario.nome,
+    email: agente.usuario.email,
+    nivelAcesso: agente.usuario.nivelAcesso,
+    empresaNome: agente.empresa.nome
+});
+
 // ─── Inicialização do Servidor HTTP + Socket.io ───
 const app = express();
 const server = http.createServer(app);
@@ -76,12 +127,16 @@ const verificarToken = (req: Request, res: Response, next: NextFunction) => {
     }
     // O padrão é "Bearer <token>", separa para pegar só o código
     const token = authHeader.split(" ")[1];
+    if (!token) {
+        res.status(401).json({ erro: "Crachá não encontrado. Acesso negado." });
+        return;
+    }
     try {
         const secret = process.env.JWT_SECRET;
         if (!secret) throw new Error("Secret não configurado");
-        const payload = jwt.verify(token, secret);
+        const payload = jwt.verify(token, secret) as UsuarioLogado;
         // Salva os dados do usuário (ID e Nível) na requisição
-        (req as any).usuarioLogado = payload;
+        (req as RequestAutenticada).usuarioLogado = payload;
         next();
     } catch (error) {
         res.status(401).json({ erro: "Crachá inválido ou expirado." });
@@ -90,7 +145,7 @@ const verificarToken = (req: Request, res: Response, next: NextFunction) => {
 
 // 2. AUTORIZAÇÃO — verifica o nível de acesso depois de autenticado
 const apenasAdmin = (req: Request, res: Response, next: NextFunction) => {
-    const usuario = (req as any).usuarioLogado;
+    const usuario = getUsuarioLogado(req);
     if (usuario?.nivelAcesso !== 'admin') {
         res.status(403).json({ erro: "Acesso restrito ao administrador." });
         return;
@@ -99,7 +154,7 @@ const apenasAdmin = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const apenasAgente = (req: Request, res: Response, next: NextFunction) => {
-    const usuario = (req as any).usuarioLogado;
+    const usuario = getUsuarioLogado(req);
     if (!['agente', 'admin'].includes(usuario?.nivelAcesso)) {
         res.status(403).json({ erro: "Acesso restrito a agentes." });
         return;
@@ -193,7 +248,8 @@ app.get("/api/usuarios", verificarToken, apenasAdmin, async (req: Request, res: 
 });
 app.get("/api/usuarios/:id", verificarToken, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const usuario = await prisma.usuario.findUnique({
             where: { idUsuario: id },
             select: { idUsuario: true, nome: true, email: true, nivelAcesso: true, createdAt: true, updatedAt: true }
@@ -210,7 +266,8 @@ app.get("/api/usuarios/:id", verificarToken, async (req: Request, res: Response)
 });
 app.put("/api/usuarios/:id", verificarToken, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const { nome, email, nivelAcesso } = req.body;
         const usuarioAtualizado = await prisma.usuario.update({
             where: { idUsuario: id },
@@ -226,7 +283,8 @@ app.put("/api/usuarios/:id", verificarToken, async (req: Request, res: Response)
 // Só admin pode deletar usuários
 app.delete("/api/usuarios/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         await prisma.usuario.delete({ where: { idUsuario: id } });
         res.status(200).json({ message: "Usuário deletado com sucesso" });
     } catch (error) {
@@ -257,7 +315,8 @@ app.get("/api/empresas", verificarToken, apenasAdmin, async (req: Request, res: 
 });
 app.get("/api/empresas/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const empresa = await prisma.empresa.findUnique({ where: { idEmpresa: id } });
         if (!empresa) {
             res.status(404).json({ error: "Empresa não encontrada" });
@@ -271,7 +330,8 @@ app.get("/api/empresas/:id", verificarToken, apenasAdmin, async (req: Request, r
 });
 app.put("/api/empresas/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const { nome, cnpj, email } = req.body;
         const empresaAtualizada = await prisma.empresa.update({ where: { idEmpresa: id }, data: { nome, cnpj, email } });
         res.status(200).json(empresaAtualizada);
@@ -282,7 +342,8 @@ app.put("/api/empresas/:id", verificarToken, apenasAdmin, async (req: Request, r
 });
 app.delete("/api/empresas/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         await prisma.empresa.delete({ where: { idEmpresa: id } });
         res.status(200).json({ message: "Empresa deletada com sucesso" });
     } catch (error) {
@@ -296,8 +357,14 @@ app.delete("/api/empresas/:id", verificarToken, apenasAdmin, async (req: Request
 app.post("/api/agentes", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
         const { idUsuario, idEmpresa, cargo, disponivel } = req.body;
-        const novoAgente = await prisma.agente.create({ data: { idUsuario, idEmpresa, cargo, disponivel } });
-        res.status(201).json(novoAgente);
+        const novoAgente = await prisma.agente.create({
+            data: { idUsuario, idEmpresa, cargo, disponivel },
+            include: {
+                usuario: { select: { nome: true, email: true, nivelAcesso: true } },
+                empresa: { select: { nome: true } }
+            }
+        });
+        res.status(201).json(formatAgente(novoAgente));
     } catch (error) {
         console.error("Erro ao criar agente:", error);
         res.status(500).json({ error: "Erro ao criar agente" });
@@ -305,8 +372,14 @@ app.post("/api/agentes", verificarToken, apenasAdmin, async (req: Request, res: 
 });
 app.get("/api/agentes", verificarToken, apenasAgente, async (req: Request, res: Response) => {
     try {
-        const agentes = await prisma.agente.findMany();
-        res.status(200).json(agentes);
+        const agentes = await prisma.agente.findMany({
+            include: {
+                usuario: { select: { nome: true, email: true, nivelAcesso: true } },
+                empresa: { select: { nome: true } }
+            },
+            orderBy: { idAgente: 'asc' }
+        });
+        res.status(200).json(agentes.map(formatAgente));
     } catch (error) {
         console.error("Erro ao buscar agentes:", error);
         res.status(500).json({ error: "Erro ao buscar agentes" });
@@ -314,13 +387,20 @@ app.get("/api/agentes", verificarToken, apenasAgente, async (req: Request, res: 
 });
 app.get("/api/agentes/:id", verificarToken, apenasAgente, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
-        const agente = await prisma.agente.findUnique({ where: { idAgente: id } });
+        const id = parseIdParam(req, res);
+        if (id === null) return;
+        const agente = await prisma.agente.findUnique({
+            where: { idAgente: id },
+            include: {
+                usuario: { select: { nome: true, email: true, nivelAcesso: true } },
+                empresa: { select: { nome: true } }
+            }
+        });
         if (!agente) {
             res.status(404).json({ error: "Agente não encontrado" });
             return;
         }
-        res.status(200).json(agente);
+        res.status(200).json(formatAgente(agente));
     } catch (error) {
         console.error("Erro ao buscar agente:", error);
         res.status(500).json({ error: "Erro ao buscar agente" });
@@ -328,10 +408,18 @@ app.get("/api/agentes/:id", verificarToken, apenasAgente, async (req: Request, r
 });
 app.put("/api/agentes/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const { idUsuario, idEmpresa, cargo, disponivel } = req.body;
-        const agenteAtualizado = await prisma.agente.update({ where: { idAgente: id }, data: { idUsuario, idEmpresa, cargo, disponivel } });
-        res.status(200).json(agenteAtualizado);
+        const agenteAtualizado = await prisma.agente.update({
+            where: { idAgente: id },
+            data: { idUsuario, idEmpresa, cargo, disponivel },
+            include: {
+                usuario: { select: { nome: true, email: true, nivelAcesso: true } },
+                empresa: { select: { nome: true } }
+            }
+        });
+        res.status(200).json(formatAgente(agenteAtualizado));
     } catch (error) {
         console.error("Erro ao atualizar agente:", error);
         res.status(500).json({ error: "Erro ao atualizar agente" });
@@ -340,10 +428,18 @@ app.put("/api/agentes/:id", verificarToken, apenasAdmin, async (req: Request, re
 // PATCH - Agente atualiza a própria disponibilidade (RN-06)
 app.patch("/api/agentes/:id/disponibilidade", verificarToken, apenasAgente, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const { disponivel } = req.body;
-        const agenteAtualizado = await prisma.agente.update({ where: { idAgente: id }, data: { disponivel } });
-        res.status(200).json(agenteAtualizado);
+        const agenteAtualizado = await prisma.agente.update({
+            where: { idAgente: id },
+            data: { disponivel },
+            include: {
+                usuario: { select: { nome: true, email: true, nivelAcesso: true } },
+                empresa: { select: { nome: true } }
+            }
+        });
+        res.status(200).json(formatAgente(agenteAtualizado));
     } catch (error) {
         console.error("Erro ao atualizar disponibilidade do agente:", error);
         res.status(500).json({ error: "Erro ao atualizar disponibilidade do agente" });
@@ -351,7 +447,8 @@ app.patch("/api/agentes/:id/disponibilidade", verificarToken, apenasAgente, asyn
 });
 app.delete("/api/agentes/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         await prisma.agente.delete({ where: { idAgente: id } });
         res.status(200).json({ message: "Agente deletado com sucesso" });
     } catch (error) {
@@ -387,7 +484,7 @@ app.post("/api/chamados", verificarToken, async (req: Request, res: Response) =>
                 data: agentesEAdmins.map(user => ({
                     idUsuario: user.idUsuario,
                     idChamado: novoChamado.idChamado,
-                    tipo: 'novo_chamado' as any
+                    tipo: 'novo_chamado'
                 }))
             });
         }
@@ -401,7 +498,7 @@ app.post("/api/chamados", verificarToken, async (req: Request, res: Response) =>
 // RN-09: cliente só vê os próprios chamados; agente/admin vê todos
 app.get("/api/chamados", verificarToken, async (req: Request, res: Response) => {
     try {
-        const { idUsuario, nivelAcesso } = (req as any).usuarioLogado;
+        const { idUsuario, nivelAcesso } = getUsuarioLogado(req);
         const chamados = await prisma.chamado.findMany({
             where: nivelAcesso === 'cliente' ? { idCliente: idUsuario } : {}
         });
@@ -413,7 +510,8 @@ app.get("/api/chamados", verificarToken, async (req: Request, res: Response) => 
 });
 app.get("/api/chamados/:id", verificarToken, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const chamado = await prisma.chamado.findUnique({ where: { idChamado: id } });
         if (!chamado) {
             res.status(404).json({ error: "Chamado não encontrado" });
@@ -427,7 +525,8 @@ app.get("/api/chamados/:id", verificarToken, async (req: Request, res: Response)
 });
 app.put("/api/chamados/:id", verificarToken, apenasAgente, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         // protocolo não pode ser alterado manualmente - RN-07
         const { idCliente, idAgente, idEmpresa, titulo, descricao, categoria, status, prioridade, anexo, mimeTypeAnexo } = req.body;
         const chamadoAtualizado = await prisma.chamado.update({
@@ -442,9 +541,10 @@ app.put("/api/chamados/:id", verificarToken, apenasAgente, async (req: Request, 
 });
 app.patch("/api/chamados/:id/status", verificarToken, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const { status } = req.body;
-        const usuario = (req as any).usuarioLogado;
+        const usuario = getUsuarioLogado(req);
 
         const chamadoExistente = await prisma.chamado.findUnique({ where: { idChamado: id } });
         if (!chamadoExistente) {
@@ -490,7 +590,8 @@ app.patch("/api/chamados/:id/status", verificarToken, async (req: Request, res: 
 });
 app.delete("/api/chamados/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         await prisma.chamado.delete({ where: { idChamado: id } });
         res.status(200).json({ message: "Chamado deletado com sucesso" });
     } catch (error) {
@@ -502,7 +603,8 @@ app.delete("/api/chamados/:id", verificarToken, apenasAdmin, async (req: Request
 // ─── MENSAGENS (vinculadas ao chamado - RN-05) ──
 app.post("/api/chamados/:id/mensagens", verificarToken, async (req: Request, res: Response) => {
     try {
-        const idChamado = parseInt(req.params.id);
+        const idChamado = parseIdParam(req, res);
+        if (idChamado === null) return;
         const { idRemetente, mensagem, anexo, mimeTypeAnexo } = req.body;
         const novaMensagem = await prisma.chat_Mensagem.create({
             data: { idChamado, idRemetente, mensagem, anexo, mimeTypeAnexo }
@@ -532,7 +634,8 @@ app.post("/api/chamados/:id/mensagens", verificarToken, async (req: Request, res
 });
 app.get("/api/chamados/:id/mensagens", verificarToken, async (req: Request, res: Response) => {
     try {
-        const idChamado = parseInt(req.params.id);
+        const idChamado = parseIdParam(req, res);
+        if (idChamado === null) return;
         const mensagens = await prisma.chat_Mensagem.findMany({
             where: { idChamado },
             orderBy: { createdAt: 'asc' }
@@ -545,7 +648,8 @@ app.get("/api/chamados/:id/mensagens", verificarToken, async (req: Request, res:
 });
 app.delete("/api/mensagens/:id", verificarToken, apenasAgente, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         await prisma.chat_Mensagem.delete({ where: { idMensagem: id } });
         res.status(200).json({ message: "Mensagem deletada com sucesso" });
     } catch (error) {
@@ -568,7 +672,7 @@ app.post("/api/notificacoes", verificarToken, apenasAgente, async (req: Request,
 // Cada usuário só vê as próprias notificações
 app.get("/api/notificacoes", verificarToken, async (req: Request, res: Response) => {
     try {
-        const { idUsuario } = (req as any).usuarioLogado;
+        const { idUsuario } = getUsuarioLogado(req);
         const notificacoes = await prisma.notificacao.findMany({
             where: { idUsuario }
         });
@@ -580,7 +684,8 @@ app.get("/api/notificacoes", verificarToken, async (req: Request, res: Response)
 });
 app.get("/api/notificacoes/:id", verificarToken, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const notificacao = await prisma.notificacao.findUnique({ where: { idNotificacao: id } });
         if (!notificacao) {
             res.status(404).json({ error: "Notificação não encontrada" });
@@ -595,7 +700,8 @@ app.get("/api/notificacoes/:id", verificarToken, async (req: Request, res: Respo
 // PATCH - Marcar notificação como lida
 app.patch("/api/notificacoes/:id/lida", verificarToken, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const notificacaoAtualizada = await prisma.notificacao.update({ where: { idNotificacao: id }, data: { lida: true } });
         res.status(200).json(notificacaoAtualizada);
     } catch (error) {
@@ -605,7 +711,8 @@ app.patch("/api/notificacoes/:id/lida", verificarToken, async (req: Request, res
 });
 app.delete("/api/notificacoes/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         await prisma.notificacao.delete({ where: { idNotificacao: id } });
         res.status(200).json({ message: "Notificação deletada com sucesso" });
     } catch (error) {
@@ -638,7 +745,8 @@ app.post("/api/categorias", verificarToken, apenasAdmin, async (req: Request, re
 
 app.delete("/api/categorias/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         await prisma.categoria.delete({ where: { idCategoria: id } });
         res.status(200).json({ message: "Categoria deletada" });
     } catch (error) {
@@ -668,7 +776,8 @@ app.post("/api/macros", verificarToken, apenasAdmin, async (req: Request, res: R
 
 app.delete("/api/macros/:id", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         await prisma.macro.delete({ where: { idMacro: id } });
         res.status(200).json({ message: "Macro deletada" });
     } catch (error) {
@@ -741,9 +850,10 @@ app.get("/api/analytics", verificarToken, apenasAdmin, async (req: Request, res:
 // 5. Triagem e Atribuição
 app.patch("/api/chamados/:id/atribuir", verificarToken, apenasAdmin, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const { idAgente } = req.body;
-        const usuarioLogado = (req as any).usuarioLogado;
+        const usuarioLogado = getUsuarioLogado(req);
 
         const chamadoAtualizado = await prisma.chamado.update({
             where: { idChamado: id },
@@ -777,9 +887,10 @@ app.post('/api/upload', verificarToken, upload.single('arquivo'), (req: Request,
 // ─── AVALIAÇÃO (CSAT) ─────────────────────────────────────
 app.patch('/api/chamados/:id/avaliar', verificarToken, async (req: Request, res: Response) => {
     try {
-        const id = parseInt(req.params.id);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
         const { avaliacao } = req.body;
-        const usuario = (req as any).usuarioLogado;
+        const usuario = getUsuarioLogado(req);
 
         if (!avaliacao || avaliacao < 1 || avaliacao > 5) {
             res.status(400).json({ error: 'Avaliação deve ser entre 1 e 5.' });

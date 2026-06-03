@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Concluído-success?style=flat-square" alt="Status" />
-  <img src="https://img.shields.io/badge/React-18-blue?style=flat-square" alt="React" />
+  <img src="https://img.shields.io/badge/React-19-blue?style=flat-square" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-Linguagem-blue?style=flat-square" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Docker-Conteinerização-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/AWS_EC2-Deploy_validado-FF9900?style=flat-square&logo=amazonaws&logoColor=white" alt="AWS EC2" />
@@ -16,7 +16,7 @@
 
 ## Visão Geral
 
-Sistema de gestão de chamados para simular um fluxo real de suporte técnico. O projeto foi conteinerizado com Docker e validado em ambiente Linux em uma instância AWS EC2. Também conta com pipeline de CI via GitHub Actions para validação automatizada de código (lint, build e Docker build).
+Sistema de gestão de chamados para simular um fluxo real de suporte técnico. O projeto foi conteinerizado com Docker e validado em ambiente Linux em uma instância AWS EC2. Também conta com pipeline de CI via GitHub Actions para validação automatizada de código (lint, build, type-check e Docker build).
 
 Este projeto foi construído com foco em organização, manutenção e execução reproduzível, utilizando TypeScript em ambas as camadas e Docker Compose para facilitar a inicialização do ambiente.
 
@@ -58,7 +58,7 @@ O sistema conta com um motor de analytics para administradores:
 - **Protocolos:** Socket.io para WebSockets e Multer para Multipart/Form-Data
 
 ### Frontend
-- **Biblioteca:** React 18 com Vite
+- **Biblioteca:** React 19 com Vite
 - **Gerenciamento de Estado:** Context API para autenticação global e persistência de sessão.
 - **Estilização:** CSS Moderno (Vanilla) focado em performance e responsividade.
 - **Ícones e UI:** Lucide React para elementos visuais consistentes.
@@ -73,7 +73,7 @@ helpdesk-system/
 │   └── workflows/
 │       └── ci.yml              # Pipeline CI (GitHub Actions)
 ├── backend/
-│   ├── prisma/                 # Modelagem de dados e Migrations
+│   ├── prisma/                 # Schema Prisma e sincronização do banco
 │   ├── src/                    # Lógica de negócio, Rotas e Socket Server
 │   ├── uploads/                # Armazenamento físico de anexos
 │   ├── Dockerfile              # Imagem Docker do Backend (Node.js Alpine)
@@ -97,11 +97,12 @@ helpdesk-system/
 A infraestrutura completa da aplicação foi desenhada para subir com um único comando.
 
 1. Instale o Docker e o Docker Compose.
-2. Na raiz do repositório, rode o comando:
+2. Opcionalmente, configure um arquivo `.env` na raiz para sobrescrever `MYSQL_ROOT_PASSWORD`, `MYSQL_PORT`, `DATABASE_URL`, `JWT_SECRET` e `VITE_API_URL`. Se não configurar, o Compose usa valores padrão para ambiente local.
+3. Na raiz do repositório, rode o comando:
    ```bash
    docker-compose up -d --build
    ```
-3. Acesse a aplicação:
+4. Acesse a aplicação:
    - **Frontend:** http://localhost
    - **Backend API:** http://localhost:3000
 

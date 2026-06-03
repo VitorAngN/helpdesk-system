@@ -1,8 +1,16 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../contexts/AuthContext';
+import { AuthContext } from '../../contexts/AuthContextValue';
 import api from '../../services/api';
 import './Login.css';
+
+type ApiError = {
+  response?: {
+    data?: {
+      error?: string;
+    };
+  };
+};
 
 export default function Login() {
   const navigate = useNavigate();
@@ -31,9 +39,10 @@ export default function Login() {
       else if (usuario.nivelAcesso === 'agente') navigate('/agente');
       else if (usuario.nivelAcesso === 'admin') navigate('/admin');
 
-    } catch (err: any) {
-      if (err.response && err.response.data.error) {
-        setErro(err.response.data.error); // Pega a msg de erro do Backend (E-mail ou senha incorreta)
+    } catch (err) {
+      const apiError = err as ApiError;
+      if (apiError.response?.data?.error) {
+        setErro(apiError.response.data.error); // Pega a msg de erro do Backend (E-mail ou senha incorreta)
       } else {
         setErro("Não foi possível conectar ao servidor.");
       }

@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { LayoutDashboard, Building2, Users, Settings, FileText } from 'lucide-react';
 import Layout from '../../../components/Layout/Layout';
-import StatusBadge, { type StatusType } from '../../../components/StatusBadge/StatusBadge';
 import { TicketUtils } from '../../../utils/TicketUtils';
 import api from '../../../services/api';
 import './Dashboard.css';
 
 interface Empresa { idEmpresa: number; nome: string; cnpj: string; email: string; ativo: boolean; }
-interface Agente { idUsuario: number; nome: string; email: string; nivelAcesso: string; }
+interface Agente { idAgente: number; idUsuario: number; idEmpresa: number; nome: string; email: string; nivelAcesso: string; cargo: string; disponivel: boolean; empresaNome?: string; }
+interface UsuarioCriado { idUsuario: number; nome: string; email: string; nivelAcesso: string; }
 interface Categoria { idCategoria: number; nome: string; }
 interface Macro { idMacro: number; titulo: string; texto: string; }
 interface LogAuditoria { idLog: number; acao: string; detalhe: string; createdAt: string; usuario: { nome: string; email: string } }
@@ -41,15 +41,12 @@ export default function AdminDashboard() {
   
   const [showNovoAgenteForm, setShowNovoAgenteForm] = useState(false);
   const [nomeAgente, setNomeAgente] = useState(''); const [emailAgente, setEmailAgente] = useState(''); const [senhaAgente, setSenhaAgente] = useState(''); const [nivelAcessoAgente, setNivelAcessoAgente] = useState('agente');
+  const [empresaAgente, setEmpresaAgente] = useState(''); const [cargoAgente, setCargoAgente] = useState('Atendente de Suporte');
 
   const [nomeCategoria, setNomeCategoria] = useState('');
   const [tituloMacro, setTituloMacro] = useState(''); const [textoMacro, setTextoMacro] = useState('');
 
-  useEffect(() => {
-    loadAdminData();
-  }, []);
-
-  async function loadAdminData() {
+  const loadAdminData = useCallback(async () => {
     setLoading(true);
     try {
       const [resEmp, resAg, resCat, resMac, resLog, resAna] = await Promise.all([
@@ -60,45 +57,77 @@ export default function AdminDashboard() {
         api.get('/logs'),
         api.get('/analytics')
       ]);
-      setEmpresas(resEmp.data); setAgentes(resAg.data); setCategorias(resCat.data); 
+      setEmpresas(resEmp.data); setAgentes(resAg.data); setCategorias(resCat.data);
+      setEmpresaAgente(prev => prev || (resEmp.data.length > 0 ? String(resEmp.data[0].idEmpresa) : ''));
       setMacros(resMac.data); setLogs(resLog.data); setAnalytics(resAna.data);
     } catch (e) {
       console.error("Erro dashboard admin", e);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    loadAdminData();
+  }, [loadAdminData]);
 
   const handleCreateEmpresa = async (e: React.FormEvent) => {
     e.preventDefault();
     try { await api.post('/empresas', { nome: nomeEmpresa, cnpj, email: emailEmpresa }); loadAdminData(); setShowNovaEmpresaForm(false); setNomeEmpresa(''); setCnpj(''); setEmailEmpresa(''); alert("Criado!"); } 
-    catch(err) { alert("Erro ao criar empresa."); }
+    catch { alert("Erro ao criar empresa."); }
   };
 
   const handleCreateAgente = async (e: React.FormEvent) => {
     e.preventDefault();
-    try { await api.post('/usuarios', { nome: nomeAgente, email: emailAgente, senha: senhaAgente, nivelAcesso: nivelAcessoAgente }); loadAdminData(); setShowNovoAgenteForm(false); setNomeAgente(''); setEmailAgente(''); setSenhaAgente(''); alert("Criado!"); } 
-    catch(err) { alert("Erro ao criar usuário."); }
+    const idEmpresaSelecionada = Number(empresaAgente || empresas[0]?.idEmpresa);
+    if (nivelAcessoAgente === 'agente' && !idEmpresaSelecionada) {
+      alert('Crie uma empresa antes de cadastrar agentes.');
+      return;
+    }
+
+    try {
+      const usuarioResponse = await api.post<UsuarioCriado>('/usuarios', { nome: nomeAgente, email: emailAgente, senha: senhaAgente, nivelAcesso: nivelAcessoAgente });
+
+      if (nivelAcessoAgente === 'agente') {
+        await api.post('/agentes', {
+          idUsuario: usuarioResponse.data.idUsuario,
+          idEmpresa: idEmpresaSelecionada,
+          cargo: cargoAgente,
+          disponivel: true
+        });
+      }
+
+      loadAdminData();
+      setShowNovoAgenteForm(false);
+      setNomeAgente('');
+      setEmailAgente('');
+      setSenhaAgente('');
+      setNivelAcessoAgente('agente');
+      setCargoAgente('Atendente de Suporte');
+      alert("Criado!");
+    } catch {
+      alert("Erro ao criar usuário.");
+    }
   };
 
   const handleCreateCategoria = async (e: React.FormEvent) => {
     e.preventDefault();
     try { await api.post('/categorias', { nome: nomeCategoria }); loadAdminData(); setNomeCategoria(''); } 
-    catch(err) { alert("Erro ao criar."); }
+    catch { alert("Erro ao criar."); }
   };
 
   const handleCreateMacro = async (e: React.FormEvent) => {
     e.preventDefault();
     try { await api.post('/macros', { titulo: tituloMacro, texto: textoMacro }); loadAdminData(); setTituloMacro(''); setTextoMacro(''); } 
-    catch(err) { alert("Erro ao criar."); }
+    catch { alert("Erro ao criar."); }
   };
 
   const deleteCategoria = async (id: number) => {
-    if(window.confirm('Excluir?')) { try { await api.delete(`/categorias/${id}`); loadAdminData(); } catch(err) { alert('Erro'); } }
+    if(window.confirm('Excluir?')) { try { await api.delete(`/categorias/${id}`); loadAdminData(); } catch { alert('Erro'); } }
   }
   
   const deleteMacro = async (id: number) => {
-    if(window.confirm('Excluir?')) { try { await api.delete(`/macros/${id}`); loadAdminData(); } catch(err) { alert('Erro'); } }
+    if(window.confirm('Excluir?')) { try { await api.delete(`/macros/${id}`); loadAdminData(); } catch { alert('Erro'); } }
   }
 
   return (
@@ -125,6 +154,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="admin-main-content">
+          {loading && <p style={{color: 'var(--text-muted)', marginTop: 0}}>Carregando dados administrativos...</p>}
           
           {activeTab === 'Dashboard' && analytics && (
             <div>
@@ -224,11 +254,29 @@ export default function AdminDashboard() {
               </div>
               {showNovoAgenteForm && (
                 <form className="admin-inline-form" onSubmit={handleCreateAgente} style={{padding: '24px', backgroundColor: 'var(--bg-card)', marginBottom: '24px', borderRadius: '12px', border: '1px solid var(--border-color)'}}>
-                  <div style={{display: 'flex', gap: '16px', marginBottom: '16px'}}><input type="text" placeholder="Nome" required value={nomeAgente} onChange={(e)=>setNomeAgente(e.target.value)} style={{flex:1, padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-main)', color:'var(--text-main)'}} /><input type="email" placeholder="Email" required value={emailAgente} onChange={(e)=>setEmailAgente(e.target.value)} style={{flex:1, padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-main)', color:'var(--text-main)'}} /><input type="password" placeholder="Senha" required value={senhaAgente} onChange={(e)=>setSenhaAgente(e.target.value)} style={{flex:1, padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-main)', color:'var(--text-main)'}} /><select value={nivelAcessoAgente} onChange={(e)=>setNivelAcessoAgente(e.target.value)} style={{padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-main)', color:'var(--text-main)'}}><option value="cliente">Cliente</option><option value="agente">Agente</option><option value="admin">Admin</option></select></div>
+                  <div style={{display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap'}}>
+                    <input type="text" placeholder="Nome" required value={nomeAgente} onChange={(e)=>setNomeAgente(e.target.value)} style={{flex:1, minWidth:'180px', padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-main)', color:'var(--text-main)'}} />
+                    <input type="email" placeholder="Email" required value={emailAgente} onChange={(e)=>setEmailAgente(e.target.value)} style={{flex:1, minWidth:'180px', padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-main)', color:'var(--text-main)'}} />
+                    <input type="password" placeholder="Senha" required value={senhaAgente} onChange={(e)=>setSenhaAgente(e.target.value)} style={{flex:1, minWidth:'160px', padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-main)', color:'var(--text-main)'}} />
+                    <select value={nivelAcessoAgente} onChange={(e)=>setNivelAcessoAgente(e.target.value)} style={{padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-main)', color:'var(--text-main)'}}>
+                      <option value="cliente">Cliente</option>
+                      <option value="agente">Agente</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  {nivelAcessoAgente === 'agente' && (
+                    <div style={{display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap'}}>
+                      <select required value={empresaAgente} onChange={(e)=>setEmpresaAgente(e.target.value)} style={{flex:1, minWidth:'220px', padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-main)', color:'var(--text-main)'}}>
+                        <option value="">Selecione a empresa</option>
+                        {empresas.map(empresa => <option key={empresa.idEmpresa} value={empresa.idEmpresa}>{empresa.nome}</option>)}
+                      </select>
+                      <input type="text" placeholder="Cargo" required value={cargoAgente} onChange={(e)=>setCargoAgente(e.target.value)} style={{flex:1, minWidth:'180px', padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-main)', color:'var(--text-main)'}} />
+                    </div>
+                  )}
                   <button type="submit" style={{padding:'10px 24px', background:'var(--primary-color)', color:'#fff', border:'none', borderRadius:'8px', cursor:'pointer'}}>Criar Usuário</button>
                 </form>
               )}
-              <div className="admin-list">{agentes.map(a => (<div key={a.idUsuario} className="admin-list-item"><div className="company-info"><p className="company-name">{a.nome}</p><p className="company-meta">{a.email}</p></div><span style={{color: '#9ca3af', fontSize: '0.8rem', textTransform: 'uppercase', border: '1px solid #444', padding: '4px 8px', borderRadius: '4px'}}>{a.nivelAcesso}</span></div>))}</div>
+              <div className="admin-list">{agentes.map(a => (<div key={a.idAgente} className="admin-list-item"><div className="company-info"><p className="company-name">{a.nome}</p><p className="company-meta">{a.email} · {a.empresaNome || 'Sem empresa'} · {a.cargo}</p></div><span style={{color: '#9ca3af', fontSize: '0.8rem', textTransform: 'uppercase', border: '1px solid #444', padding: '4px 8px', borderRadius: '4px'}}>{a.disponivel ? 'Disponível' : 'Indisponível'}</span></div>))}</div>
             </div>
           )}
 

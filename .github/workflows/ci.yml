@@ -43,6 +43,10 @@ jobs:
         working-directory: ./backend
         run: npx prisma generate
 
+      - name: Type-check Backend
+        working-directory: ./backend
+        run: npm run typecheck
+
       # Docker Verification
       - name: Test Docker Compose Build
         run: docker-compose build
