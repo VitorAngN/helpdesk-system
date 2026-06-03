@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import api from '../../../services/api';
-import { AuthContext } from '../../../contexts/AuthContext';
+import { AuthContext } from '../../../contexts/AuthContextValue';
 import Layout from '../../../components/Layout/Layout';
 import './NovoChamado.css';
 

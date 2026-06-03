@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import Header from '../Header/Header';
 import Sidebar from '../Sidebar/Sidebar';
-import { AuthContext } from '../../contexts/AuthContext';
+import { AuthContext } from '../../contexts/AuthContextValue';
 import './Layout.css';
 
 interface LayoutProps {

@@ -1,60 +1,122 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  title: Sistema de Helpdesk / Gestão Corporativa API
-  description: Contrato técnico (Especificação OpenAPI) listando as rotas, os JSONs esperados e as respostas do servidor. Ajustado com todas as rotas de Chat, Admin e Agentes.
+  title: Helpdesk Corporativo API
+  description: Contrato técnico das rotas reais expostas pelo backend Express.
   version: 1.0.0
 servers:
   - url: http://localhost:3000/api
-    description: Ambiente Local (Docker / Node.js)
+    description: Ambiente local
 
 tags:
+  - name: Health
   - name: Auth
-  - name: Tickets
-  - name: Chat
-  - name: Admin
+  - name: Usuarios
+  - name: Empresas
   - name: Agentes
+  - name: Chamados
+  - name: Chat
   - name: Notificacoes
+  - name: Admin
 
 paths:
+  /teste:
+    get:
+      summary: Verificar se a API esta online
+      tags: [Health]
+      responses:
+        "200":
+          description: Rota de teste funcionando
+
   /auth/login:
     post:
-      summary: Autenticar Cliente ou Admin
-      description: Recebe email e senha, valida com o banco de dados e devolve um token JWT e a Role (papel) daquela pessoa.
+      summary: Autenticar usuário
       tags: [Auth]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        '200':
-          description: Retorna JWT e nivelAcesso
+        "200":
+          description: Login realizado com sucesso
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
+                $ref: "#/components/schemas/LoginResponse"
 
-  /agentes/auth:
+  /usuarios:
     post:
-      summary: Autenticar Agente Específico
-      description: Endpoint isolado para agentes corporativos.
-      tags: [Auth]
+      summary: Criar usuário
+      tags: [Usuarios]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: "#/components/schemas/CreateUsuarioRequest"
       responses:
-        '200':
-          description: Retorna JWT e nivelAcesso 'agente'
+        "201":
+          description: Usuário criado sem o campo senha
+    get:
+      summary: Listar usuários
+      tags: [Usuarios]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de usuários
 
-  /tickets:
+  /usuarios/{id}:
+    get:
+      summary: Obter usuário por ID
+      tags: [Usuarios]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Usuário encontrado
+    put:
+      summary: Atualizar usuário
+      tags: [Usuarios]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUsuarioRequest"
+      responses:
+        "200":
+          description: Usuário atualizado
+    delete:
+      summary: Deletar usuário
+      tags: [Usuarios]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Usuário deletado
+
+  /empresas:
+    get:
+      summary: Listar empresas
+      tags: [Empresas]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de empresas
     post:
-      summary: Abrir Chamado
-      description: Colaborador abre um novo ticket apontando problema em uma máquina ou software. (Exige token logado).
-      tags: [Tickets]
+      summary: Criar empresa
+      tags: [Empresas]
       security:
         - bearerAuth: []
       requestBody:
@@ -62,145 +124,266 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateTicketDTO'
+              $ref: "#/components/schemas/CreateEmpresaRequest"
       responses:
-        '201':
-          description: Chamado criado com sucesso
-    get:
-      summary: Listar Painel de Chamados
-      description: Retorna a lista de chamados. Se a Request vier de um "Agente/Admin", retorna TODOS. Se vier de um "Cliente", retorna só os que ELE abriu.
-      tags: [Tickets]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Lista enviada
-          
-  /tickets/{id}:
-    get:
-      summary: Ver Detalhes do Chamado
-      tags: [Tickets]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Detalhes do ticket e interações
+        "201":
+          description: Empresa criada
 
-  /tickets/{id}/status:
-    patch:
-      summary: Avançar Status do Chamado
-      description: O técnico de TI altera o status do chamado e assume a sua resolução.
-      tags: [Tickets]
+  /empresas/{id}:
+    get:
+      summary: Obter empresa por ID
+      tags: [Empresas]
       security:
         - bearerAuth: []
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Empresa encontrada
+    put:
+      summary: Atualizar empresa
+      tags: [Empresas]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                status:
-                  type: string
-                  enum: ['aberto','em_atendimento','aguardando_cliente','concluido','cancelado']
+              $ref: "#/components/schemas/CreateEmpresaRequest"
       responses:
-        '200':
-          description: Status Editado
+        "200":
+          description: Empresa atualizada
+    delete:
+      summary: Deletar empresa
+      tags: [Empresas]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Empresa deletada
 
-  /tickets/{id}/mensagens:
+  /agentes:
+    get:
+      summary: Listar agentes com dados do usuário e empresa
+      tags: [Agentes]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de agentes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agente"
     post:
-      summary: Enviar Mensagem no Chat do Chamado
-      tags: [Chat]
+      summary: Criar vínculo de agente para um usuário
+      tags: [Agentes]
       security:
         - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                mensagem:
-                  type: string
-                  example: "Por favor me envie um print do erro."
+              $ref: "#/components/schemas/CreateAgenteRequest"
       responses:
-        '201':
-          description: Mensagem Enviada
-    get:
-      summary: Histórico de Mensagens do Chamado (O Chat)
-      tags: [Chat]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Lista de Mensagens do Chat
+        "201":
+          description: Agente criado
 
-  /admin/empresas:
+  /agentes/{id}:
     get:
-      summary: Listar Empresas do Sistema
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Retorna todas as empresas ativas/inativas
-
-  /admin/agentes:
-    get:
-      summary: Listar Colaboradores do T.I
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Retorna a lista de agentes
-
-  /admin/relatorios/chamados:
-    get:
-      summary: Obter estatísticas para os gráficos do Dashboard
-      tags: [Admin]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Retorna volume de chamados por categoria e status
-
-  /agentes/{id}/disponibilidade:
-    patch:
-      summary: Mudar status de disponibilidade do agente (1 ou 0)
+      summary: Obter agente por ID
       tags: [Agentes]
       security:
         - bearerAuth: []
       parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Agente encontrado
+    put:
+      summary: Atualizar agente
+      tags: [Agentes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAgenteRequest"
+      responses:
+        "200":
+          description: Agente atualizado
+    delete:
+      summary: Deletar agente
+      tags: [Agentes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Agente deletado
+
+  /agentes/{id}/disponibilidade:
+    patch:
+      summary: Atualizar disponibilidade do agente
+      tags: [Agentes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [disponivel]
+              properties:
+                disponivel:
+                  type: boolean
+      responses:
+        "200":
+          description: Disponibilidade atualizada
+
+  /chamados:
+    get:
+      summary: Listar chamados
+      description: Clientes recebem apenas os próprios chamados; agentes e admins recebem todos.
+      tags: [Chamados]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de chamados
+    post:
+      summary: Abrir chamado
+      tags: [Chamados]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateChamadoRequest"
+      responses:
+        "201":
+          description: Chamado criado
+
+  /chamados/{id}:
+    get:
+      summary: Obter chamado por ID
+      tags: [Chamados]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Chamado encontrado
+    put:
+      summary: Atualizar chamado
+      tags: [Chamados]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Chamado atualizado
+    delete:
+      summary: Deletar chamado
+      tags: [Chamados]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Chamado deletado
+
+  /chamados/{id}/status:
+    patch:
+      summary: Alterar status do chamado
+      tags: [Chamados]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: "#/components/schemas/StatusChamado"
+      responses:
+        "200":
+          description: Status atualizado
+
+  /chamados/{id}/mensagens:
+    get:
+      summary: Listar mensagens do chamado
+      tags: [Chat]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Histórico de mensagens
+    post:
+      summary: Enviar mensagem no chamado
+      tags: [Chat]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMensagemRequest"
+      responses:
+        "201":
+          description: Mensagem enviada
+
+  /mensagens/{id}:
+    delete:
+      summary: Deletar mensagem
+      tags: [Chat]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Mensagem deletada
+
+  /chamados/{id}/atribuir:
+    patch:
+      summary: Atribuir chamado a um agente
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
       requestBody:
         required: true
         content:
@@ -208,22 +391,207 @@ paths:
             schema:
               type: object
               properties:
-                disponivel:
-                  type: boolean
-                  example: false
+                idAgente:
+                  type: integer
+                  nullable: true
       responses:
-        '200':
-          description: Agent status changed
+        "200":
+          description: Chamado atribuído
+
+  /chamados/{id}/avaliar:
+    patch:
+      summary: Avaliar atendimento do chamado
+      tags: [Chamados]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [avaliacao]
+              properties:
+                avaliacao:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+      responses:
+        "200":
+          description: Avaliação registrada
+
+  /upload:
+    post:
+      summary: Enviar anexo
+      tags: [Chat]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [arquivo]
+              properties:
+                arquivo:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: URL e metadados do arquivo
 
   /notificacoes:
     get:
-      summary: Ver o sino de notificações
+      summary: Listar notificações do usuário logado
       tags: [Notificacoes]
       security:
         - bearerAuth: []
       responses:
-        '200':
-          description: Retorna notificações não lidas
+        "200":
+          description: Lista de notificações
+    post:
+      summary: Criar notificação
+      tags: [Notificacoes]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateNotificacaoRequest"
+      responses:
+        "201":
+          description: Notificação criada
+
+  /notificacoes/{id}:
+    get:
+      summary: Obter notificação por ID
+      tags: [Notificacoes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Notificação encontrada
+    delete:
+      summary: Deletar notificação
+      tags: [Notificacoes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Notificação deletada
+
+  /notificacoes/{id}/lida:
+    patch:
+      summary: Marcar notificação como lida
+      tags: [Notificacoes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Notificação marcada como lida
+
+  /categorias:
+    get:
+      summary: Listar categorias
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de categorias
+    post:
+      summary: Criar categoria
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoriaRequest"
+      responses:
+        "201":
+          description: Categoria criada
+
+  /categorias/{id}:
+    delete:
+      summary: Deletar categoria
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Categoria deletada
+
+  /macros:
+    get:
+      summary: Listar macros
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de macros
+    post:
+      summary: Criar macro
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMacroRequest"
+      responses:
+        "201":
+          description: Macro criada
+
+  /macros/{id}:
+    delete:
+      summary: Deletar macro
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Macro deletada
+
+  /logs:
+    get:
+      summary: Listar logs de auditoria
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logs de auditoria
+
+  /analytics:
+    get:
+      summary: Obter indicadores do dashboard admin
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Métricas de chamados, CSAT e SLA
 
 components:
   securitySchemes:
@@ -232,48 +600,206 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
+  parameters:
+    IdParam:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+
   schemas:
     LoginRequest:
       type: object
-      required:
-        - email
-        - password
+      required: [email, senha]
       properties:
         email:
           type: string
+          format: email
           example: usuario@empresa.com.br
-        password:
+        senha:
           type: string
-          example: senhaforte123
+          example: senha123
 
     LoginResponse:
       type: object
       properties:
-        accessToken:
+        mensagem:
           type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI...
+        token:
+          type: string
+        usuario:
+          $ref: "#/components/schemas/Usuario"
+
+    Usuario:
+      type: object
+      properties:
+        idUsuario:
+          type: integer
+        nome:
+          type: string
+        email:
+          type: string
         nivelAcesso:
           type: string
-          enum: ['cliente', 'agente', 'admin']
-          example: 'agente'
+          enum: [cliente, agente, admin]
 
-    CreateTicketDTO: #Molde dde carregar dados de um lado para o outro de um ticket criado
+    CreateUsuarioRequest:
       type: object
-      required:
-        - titulo
-        - descricao
-        - categoria
+      required: [nome, email, senha, nivelAcesso]
+      properties:
+        nome:
+          type: string
+        email:
+          type: string
+          format: email
+        senha:
+          type: string
+        nivelAcesso:
+          type: string
+          enum: [cliente, agente, admin]
+
+    UpdateUsuarioRequest:
+      type: object
+      required: [nome, email, nivelAcesso]
+      properties:
+        nome:
+          type: string
+        email:
+          type: string
+          format: email
+        nivelAcesso:
+          type: string
+          enum: [cliente, agente, admin]
+
+    CreateEmpresaRequest:
+      type: object
+      required: [nome, cnpj, email]
+      properties:
+        nome:
+          type: string
+        cnpj:
+          type: string
+        email:
+          type: string
+          format: email
+
+    Agente:
+      type: object
+      properties:
+        idAgente:
+          type: integer
+        idUsuario:
+          type: integer
+        idEmpresa:
+          type: integer
+        nome:
+          type: string
+        email:
+          type: string
+        nivelAcesso:
+          type: string
+          enum: [agente, admin, cliente]
+        cargo:
+          type: string
+        disponivel:
+          type: boolean
+        empresaNome:
+          type: string
+
+    CreateAgenteRequest:
+      type: object
+      required: [idUsuario, idEmpresa, cargo]
+      properties:
+        idUsuario:
+          type: integer
+        idEmpresa:
+          type: integer
+        cargo:
+          type: string
+        disponivel:
+          type: boolean
+          default: true
+
+    StatusChamado:
+      type: string
+      enum: [aberto, em_atendimento, aguardando_cliente, concluido, cancelado]
+
+    PrioridadeChamado:
+      type: string
+      enum: [baixa, media, alta]
+
+    CreateChamadoRequest:
+      type: object
+      required: [idCliente, titulo, descricao]
+      properties:
+        idCliente:
+          type: integer
+        idAgente:
+          type: integer
+          nullable: true
+        idEmpresa:
+          type: integer
+          nullable: true
+        titulo:
+          type: string
+        descricao:
+          type: string
+        categoria:
+          type: string
+          nullable: true
+        prioridade:
+          $ref: "#/components/schemas/PrioridadeChamado"
+        anexo:
+          type: string
+          nullable: true
+        mimeTypeAnexo:
+          type: string
+          nullable: true
+
+    CreateMensagemRequest:
+      type: object
+      required: [idRemetente, mensagem]
+      properties:
+        idRemetente:
+          type: integer
+        mensagem:
+          type: string
+        anexo:
+          type: string
+          nullable: true
+        mimeTypeAnexo:
+          type: string
+          nullable: true
+
+    TipoNotificacao:
+      type: string
+      enum: [novo_chamado, nova_mensagem, status_alterado, chamado_concluido, chamado_cancelado]
+
+    CreateNotificacaoRequest:
+      type: object
+      required: [idUsuario, tipo]
+      properties:
+        idUsuario:
+          type: integer
+        idChamado:
+          type: integer
+          nullable: true
+        tipo:
+          $ref: "#/components/schemas/TipoNotificacao"
+
+    CreateCategoriaRequest:
+      type: object
+      required: [nome]
+      properties:
+        nome:
+          type: string
+
+    CreateMacroRequest:
+      type: object
+      required: [titulo, texto]
       properties:
         titulo:
           type: string
-          example: "Tela Azul no meu computador"
-        descricao:
+        texto:
           type: string
-          example: "Liguei e nada funcionou..."
-        categoria:
-          type: string
-          example: "Hardware" # Isso é só um exemplo ilustrativo, o frontend vai mandar sua própria string
-        prioridade:
-          type: string
-          enum: [baixa, media, alta]
-          example: "alta"

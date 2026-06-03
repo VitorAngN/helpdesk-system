@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Layout from '../../../components/Layout/Layout';
 import StatusBadge, { type StatusType } from '../../../components/StatusBadge/StatusBadge';
-import { AuthContext } from '../../../contexts/AuthContext';
+import { AuthContext } from '../../../contexts/AuthContextValue';
 import api from '../../../services/api';
 import { TicketUtils } from '../../../utils/TicketUtils';
 import './Historico.css';
@@ -16,6 +16,8 @@ interface Chamado {
   createdAt: string;
   updatedAt: string;
 }
+
+type LayoutRole = 'Admin' | 'Agente' | 'Cliente';
 
 export default function Historico() {
   const navigate = useNavigate();
@@ -44,7 +46,7 @@ export default function Historico() {
     fetchHistorico();
   }, []);
 
-  const convertRole = () => {
+  const convertRole = (): LayoutRole => {
     if(usuario?.nivelAcesso === 'admin') return 'Admin';
     if(usuario?.nivelAcesso === 'agente') return 'Agente';
     return 'Cliente';
@@ -63,7 +65,7 @@ export default function Historico() {
   );
 
   return (
-    <Layout role={convertRole() as any}>
+    <Layout role={convertRole()}>
       <div className="historico-container">
         
         <div className="historico-header" style={{flexDirection: 'column', alignItems: 'flex-start', gap: '24px'}}>

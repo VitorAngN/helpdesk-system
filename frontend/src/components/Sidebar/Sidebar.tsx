@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, ArchiveRestore, Home, Shield } from 'lucide-react';
-import { AuthContext } from '../../contexts/AuthContext';
+import { AuthContext } from '../../contexts/AuthContextValue';
 import './Sidebar.css';
 
 export default function Sidebar() {

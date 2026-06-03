@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import './Cadastro.css';
 
+type ApiError = {
+  response?: {
+    data?: {
+      error?: string;
+    };
+  };
+};
+
 export default function Cadastro() {
   const navigate = useNavigate();
   const [nome, setNome] = useState('');
@@ -28,9 +36,10 @@ export default function Cadastro() {
       await api.post('/usuarios', { nome, email, senha, nivelAcesso: 'cliente' });
       alert('Cadastro realizado com sucesso! Você já pode fazer login.');
       navigate('/');
-    } catch (err: any) {
-      if (err.response && err.response.data.error) {
-        setErro(err.response.data.error);
+    } catch (err) {
+      const apiError = err as ApiError;
+      if (apiError.response?.data?.error) {
+        setErro(apiError.response.data.error);
       } else {
         setErro('Erro ao realizar cadastro.');
       }

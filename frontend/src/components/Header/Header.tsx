@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { Bell, LogOut, ArchiveRestore, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../contexts/AuthContext';
+import { AuthContext } from '../../contexts/AuthContextValue';
 import api from '../../services/api';
 import socket from '../../services/socket';
 import './Header.css';
@@ -27,7 +27,20 @@ export default function Header({ userName, userInitials = "U", role = "Cliente" 
   const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
+    let ativo = true;
+
+    async function fetchNotificacoes() {
+      try {
+        const res = await api.get('/notificacoes');
+        if (ativo) setNotificacoes(res.data);
+      } catch (err) {
+        console.error("Erro notifications", err);
+      }
+    }
+
     fetchNotificacoes();
+
+    return () => { ativo = false; };
   }, []);
 
   // Escutar notificações em tempo real via socket
@@ -39,15 +52,6 @@ export default function Header({ userName, userInitials = "U", role = "Cliente" 
     });
     return () => { socket.off(eventKey); };
   }, [usuario?.idUsuario]);
-
-  const fetchNotificacoes = async () => {
-    try {
-      const res = await api.get('/notificacoes');
-      setNotificacoes(res.data);
-    } catch (err) {
-      console.error("Erro notifications", err);
-    }
-  };
 
   const markAsRead = async (id: number) => {
     try {
