@@ -13,6 +13,11 @@
   <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL" />
 </p>
 
+<p align="center">
+  <a href="https://vitorangn.github.io/helpdesk-system/"><b>Página do projeto</b></a> ·
+  <a href="https://vitorangn.github.io/helpdesk-system/api/"><b>Documentação interativa da API</b></a>
+</p>
+
 ---
 
 ## Visão Geral
