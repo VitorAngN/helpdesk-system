@@ -22,7 +22,7 @@ RUN npm ci --omit=dev && npx prisma generate && npm cache clean --force
 COPY --from=build /app/dist ./dist
 
 # Roda sem privilégios de root
-RUN mkdir -p uploads && chown -R node:node /app
+RUN mkdir -p uploads && chown node:node uploads
 USER node
 
 EXPOSE 3000
