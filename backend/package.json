@@ -21,7 +21,8 @@
     "test": "vitest run",
     "build": "tsc -p tsconfig.build.json",
     "test:watch": "vitest",
-    "seed": "tsx src/seed.ts"
+    "seed": "node dist/seed.js",
+    "seed:dev": "tsx src/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
