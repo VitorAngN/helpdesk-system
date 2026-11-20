@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../../../contexts/AuthContextValue';
 import { useNavigate } from 'react-router-dom';
 import { Plus, FileText, Clock } from 'lucide-react';
 import api from '../../../services/api';
@@ -17,6 +18,8 @@ interface ChamadoModel {
 
 export default function ClienteHome() {
   const navigate = useNavigate();
+  const { usuario } = useContext(AuthContext);
+  const primeiroNome = usuario?.nome.split(' ')[0] ?? '';
   const [chamados, setChamados] = useState<ChamadoModel[]>([]);
   const [carregando, setCarregando] = useState(true);
 
@@ -39,7 +42,7 @@ export default function ClienteHome() {
   return (
     <Layout role="Cliente">
       <div className="home-header">
-        <h1 className="greeting-title">Olá, Victor!</h1>
+        <h1 className="greeting-title">Olá{primeiroNome ? `, ${primeiroNome}` : ''}!</h1>
         <p className="greeting-subtitle">O que você precisa hoje?</p>
       </div>
 

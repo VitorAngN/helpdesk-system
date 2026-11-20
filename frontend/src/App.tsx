@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route } from 'react-router-dom';
+import { DEMO } from './demo/config';
+import DemoAviso from './demo/DemoAviso';
+
+// No GitHub Pages não há servidor para reescrever rotas, então a demo usa #/rotas.
+const Router = DEMO ? HashRouter : BrowserRouter;
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import Login from './pages/Login/Login';
@@ -14,6 +19,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        {DEMO && <DemoAviso />}
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />

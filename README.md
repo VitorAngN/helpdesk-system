@@ -14,6 +14,7 @@
 </p>
 
 <p align="center">
+  <a href="https://vitorangn.github.io/helpdesk-system/demo/"><b>Testar a demo</b></a> ·
   <a href="https://vitorangn.github.io/helpdesk-system/"><b>Página do projeto</b></a> ·
   <a href="https://vitorangn.github.io/helpdesk-system/api/"><b>Documentação interativa da API</b></a>
 </p>
@@ -183,6 +184,8 @@ Outros scripts do backend: `npm test` (testes), `npm run typecheck`, `npm run bu
 ---
 
 ## Demonstração Visual
+
+> Dá para usar o sistema direto no navegador em **[vitorangn.github.io/helpdesk-system/demo](https://vitorangn.github.io/helpdesk-system/demo/)**: a demo é o próprio frontend com a API e o Socket.io simulados no navegador (`frontend/src/demo/`), com contas de teste de cliente, agente e administrador. Para rodar com o backend real, veja abaixo.
 
 Abaixo você confere o sistema em funcionamento, dividido pelos níveis de acesso da plataforma:
 

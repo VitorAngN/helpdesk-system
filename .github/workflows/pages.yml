@@ -25,7 +25,9 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
 
       - name: Gerar OpenAPI a partir do código
         working-directory: backend
@@ -38,6 +40,14 @@ jobs:
         run: |
           npx --yes @redocly/cli@latest lint _site/api/openapi.json --skip-rule=operation-operationId --skip-rule=info-license
           npx --yes @redocly/cli@latest build-docs _site/api/openapi.json -o _site/api/index.html --title "Helpdesk Corporativo — API"
+
+      - name: Gerar a demo (frontend com a API simulada no navegador)
+        working-directory: frontend
+        env:
+          VITE_DEMO: 'true'
+        run: |
+          npm ci
+          npx vite build --outDir ../_site/demo --emptyOutDir
 
       - name: Montar o site
         run: |

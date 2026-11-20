@@ -7,6 +7,7 @@ import { AuthContext } from '../../../contexts/AuthContextValue';
 import Layout from '../../../components/Layout/Layout';
 import StatusBadge, { type StatusType } from '../../../components/StatusBadge/StatusBadge';
 import { TicketUtils } from '../../../utils/TicketUtils';
+import { urlAnexo } from '../../../demo/config';
 import './Chat.css';
 
 interface Mensagem { idMensagem: number; idRemetente: number; mensagem: string; createdAt: string; anexo?: string; mimeTypeAnexo?: string; }
@@ -272,11 +273,11 @@ export default function Chat() {
                         {msg.anexo && (
                           <div style={{marginTop: '8px'}}>
                             {isImage ? (
-                              <a href={`${(import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_URL.includes('localhost')) ? import.meta.env.VITE_API_URL : `http://${window.location.hostname}:3000`}${msg.anexo}`} target="_blank" rel="noreferrer">
-                                <img src={`${(import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_URL.includes('localhost')) ? import.meta.env.VITE_API_URL : `http://${window.location.hostname}:3000`}${msg.anexo}`} alt="anexo" style={{maxWidth: '220px', borderRadius: '8px', display: 'block'}} />
+                              <a href={urlAnexo(msg.anexo)} target="_blank" rel="noreferrer">
+                                <img src={urlAnexo(msg.anexo)} alt="anexo" style={{maxWidth: '220px', borderRadius: '8px', display: 'block'}} />
                               </a>
                             ) : (
-                              <a href={`${(import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_URL.includes('localhost')) ? import.meta.env.VITE_API_URL : `http://${window.location.hostname}:3000`}${msg.anexo}`} target="_blank" rel="noreferrer" style={{color: 'var(--primary-color)', fontSize: '0.85rem'}}>📎 Ver Anexo</a>
+                              <a href={urlAnexo(msg.anexo)} target="_blank" rel="noreferrer" style={{color: 'var(--primary-color)', fontSize: '0.85rem'}}>📎 Ver Anexo</a>
                             )}
                           </div>
                         )}
@@ -308,7 +309,7 @@ export default function Chat() {
               {usuario?.nivelAcesso === 'cliente' && chamadoAtivo.status === 'concluido' && avaliacaoEnviada && chamadoAtivo.avaliacao && (
                 <div style={{padding: '12px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '4px', alignItems: 'center'}}>
                   <span style={{fontSize: '0.85rem', color: 'var(--text-muted)'}}>Avaliação registrada:</span>
-                  {[1,2,3,4,5].map(n => <Star key={n} size={16} fill={chamadoAtivo.avaliacao >= n ? '#f59e0b' : 'transparent'} color={chamadoAtivo.avaliacao >= n ? '#f59e0b' : '#9ca3af'} />)}
+                  {[1,2,3,4,5].map(n => <Star key={n} size={16} fill={(chamadoAtivo.avaliacao ?? 0) >= n ? '#f59e0b' : 'transparent'} color={(chamadoAtivo.avaliacao ?? 0) >= n ? '#f59e0b' : '#9ca3af'} />)}
                 </div>
               )}
 

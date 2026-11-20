@@ -2,7 +2,14 @@ import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContextValue';
 import api from '../../services/api';
+import { DEMO } from '../../demo/config';
 import './Login.css';
+
+const CONTAS_DEMO = [
+  { perfil: 'Cliente', email: 'cliente@demo.com' },
+  { perfil: 'Agente', email: 'agente@demo.com' },
+  { perfil: 'Admin', email: 'admin@demo.com' },
+];
 
 type ApiError = {
   response?: {
@@ -63,6 +70,20 @@ export default function Login() {
         </div>
 
         <p className="login-subtitle">Acesse sua conta para continuar</p>
+
+        {DEMO && (
+          <div className="demo-contas">
+            <p>Escolha um perfil para testar (senha <code>demo123</code>):</p>
+            <div className="demo-contas-botoes">
+              {CONTAS_DEMO.map((c) => (
+                <button key={c.email} type="button" onClick={() => { setEmail(c.email); setSenha('demo123'); }}
+                  className={email === c.email ? 'ativo' : ''}>
+                  {c.perfil}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {erro && <div className="error-box">{erro}</div>}
 

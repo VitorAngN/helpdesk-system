@@ -56,6 +56,12 @@
   pre { background:#0f172a; color:#e2e8f0; border:0; border-radius:16px; padding:20px; overflow:auto; font-size:14px; }
   footer { padding:24px 0 48px; color:var(--muted); font-size:14px; }
   @media (max-width:640px) { nav .links a { margin-left:14px; } .shots { grid-template-columns:1fr; } }
+
+  /* ampliar as telas ao clicar */
+  figure img { cursor:zoom-in; }
+  .zoom { position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(15,17,21,.85); cursor:zoom-out; }
+  .zoom.aberto { display:flex; }
+  .zoom img { max-width:100%; max-height:100%; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
 </style>
 </head>
 <body>
@@ -71,7 +77,8 @@
     <h1>Helpdesk Corporativo</h1>
     <p class="lead">Sistema de chamados com três perfis (cliente, agente e administrador), chat em tempo real e indicadores de SLA e CSAT. API REST em Node.js e TypeScript, com foco em segurança, testes e execução reproduzível com Docker.</p>
     <div class="btns">
-      <a class="btn primary" href="api/">Documentação da API</a>
+      <a class="btn primary" href="demo/">Testar a demo</a>
+      <a class="arrow" href="api/">Documentação da API</a>
       <a class="arrow" href="https://github.com/VitorAngN/helpdesk-system">Código no GitHub</a>
     </div>
   </div>
@@ -143,5 +150,18 @@ node scripts/smoke-test.mjs                # 21 verificações ponta a ponta</pr
     <a href="https://vitorangn.github.io/">Portfólio</a>
   </div>
 </footer>
+<div class="zoom" id="zoom"><img alt=""></div>
+<script>
+  // Clique numa tela para ver em tamanho grande; clique de novo ou Esc para fechar.
+  const zoom = document.getElementById('zoom');
+  const fechar = () => zoom.classList.remove('aberto');
+  document.querySelectorAll('figure img').forEach((img) => img.addEventListener('click', () => {
+    zoom.querySelector('img').src = img.src;
+    zoom.querySelector('img').alt = img.alt;
+    zoom.classList.add('aberto');
+  }));
+  zoom.addEventListener('click', fechar);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fechar(); });
+</script>
 </body>
 </html>

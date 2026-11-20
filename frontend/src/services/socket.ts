@@ -1,24 +1,19 @@
-import { io } from 'socket.io-client';
-
-const getBackendUrl = () => {
-  const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl && !envUrl.includes('localhost')) {
-    return envUrl;
-  }
-  return `http://${window.location.hostname}:3000`;
-};
-
-const API_URL = getBackendUrl();
+import { io, type Socket } from 'socket.io-client';
+import { API_URL, DEMO } from '../demo/config';
+import { socketDemo } from '../demo/socketDemo';
 
 // Instância global do socket. O JWT é enviado no handshake: o backend só aceita
 // conexões autenticadas e coloca cada usuário na sua própria sala de notificações.
-const socket = io(API_URL, {
-  autoConnect: false,
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  auth: (cb) => cb({ token: localStorage.getItem('@HelpDesk:token') }),
-});
+// Na demo do GitHub Pages, um emissor local faz o papel do servidor.
+const socket: Socket = DEMO
+  ? (socketDemo as unknown as Socket)
+  : io(API_URL, {
+      autoConnect: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      auth: (cb) => cb({ token: localStorage.getItem('@HelpDesk:token') }),
+    });
 
 export const conectarSocket = () => {
   if (localStorage.getItem('@HelpDesk:token') && !socket.connected) socket.connect();
