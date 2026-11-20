@@ -51,7 +51,7 @@ jobs:
 
       - name: Montar o site
         run: |
-          cp site/index.html _site/
+          cp site/index.html site/og.png _site/
           mkdir -p _site/img
           cp docs/client-dashboard.png docs/client-chat.png docs/agent-dashboard.png docs/admin-dashboard.png _site/img/
 
