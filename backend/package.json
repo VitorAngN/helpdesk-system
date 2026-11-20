@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Pacote_Node",
+  "description": "API do Helpdesk: Node.js, Express, TypeScript, Prisma e Socket.io",
   "homepage": "https://github.com/VitorAngN/helpdesk-system#readme",
   "bugs": {
     "url": "https://github.com/VitorAngN/helpdesk-system/issues"
@@ -10,37 +10,50 @@
     "type": "git",
     "url": "git+https://github.com/VitorAngN/helpdesk-system.git"
   },
-  "license": "ISC",
+  "license": "MIT",
   "author": "VitorNogueira",
   "type": "module",
-  "main": "package.js",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
+    "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json",
+    "test:watch": "vitest",
+    "seed": "tsx src/seed.ts"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.5",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
+    "prisma": "^6.19.3",
     "socket.io": "^4.8.3",
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@prisma/client": "^6.19.3",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
     "@types/node": "^25.6.0",
+    "@types/supertest": "^7.2.1",
     "@types/uuid": "^10.0.0",
-    "prisma": "^6.19.3",
+    "supertest": "^7.3.2",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vitest": "^5.1.1",
+    "vitest-mock-extended": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
