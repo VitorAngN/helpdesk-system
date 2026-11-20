@@ -1,0 +1,61 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Gerar site e documentação da API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Gerar OpenAPI a partir do código
+        working-directory: backend
+        run: |
+          npm ci
+          npx prisma generate
+          npm run openapi -- ../_site/api/openapi.json
+
+      - name: Validar e renderizar a documentação (Redoc)
+        run: |
+          npx --yes @redocly/cli@latest lint _site/api/openapi.json --skip-rule=operation-operationId --skip-rule=info-license
+          npx --yes @redocly/cli@latest build-docs _site/api/openapi.json -o _site/api/index.html --title "Helpdesk Corporativo — API"
+
+      - name: Montar o site
+        run: |
+          cp site/index.html _site/
+          mkdir -p _site/img
+          cp docs/client-dashboard.png docs/client-chat.png docs/agent-dashboard.png docs/admin-dashboard.png _site/img/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Publicar
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

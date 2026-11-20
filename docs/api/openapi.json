@@ -1,0 +1,2640 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Helpdesk Corporativo — API",
+    "version": "2.0.0",
+    "description": "API REST do sistema de helpdesk (Node.js, TypeScript, Express 5, Prisma, MySQL e Socket.io).\n\nAutenticação por JWT (`Authorization: Bearer <token>`), obtido em `POST /auth/login`. Além do controle por perfil (cliente, agente, admin), a API verifica o **dono de cada recurso**: um cliente só acessa os próprios chamados, mensagens e notificações.\n\nEsta documentação é gerada a partir dos mesmos schemas Zod que validam as requisições."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Ambiente local (docker compose up)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Disponibilidade e documentação da API"
+    },
+    {
+      "name": "Auth",
+      "description": "Login com JWT"
+    },
+    {
+      "name": "Usuários",
+      "description": "Cadastro e perfis (cliente, agente, admin)"
+    },
+    {
+      "name": "Empresas",
+      "description": "Empresas atendidas"
+    },
+    {
+      "name": "Agentes",
+      "description": "Equipe de atendimento e disponibilidade"
+    },
+    {
+      "name": "Chamados",
+      "description": "Abertura, acompanhamento, atribuição e avaliação (CSAT)"
+    },
+    {
+      "name": "Chat",
+      "description": "Mensagens em tempo real de cada chamado"
+    },
+    {
+      "name": "Notificações",
+      "description": "Avisos do usuário logado"
+    },
+    {
+      "name": "Admin",
+      "description": "Categorias, respostas prontas, auditoria e indicadores"
+    },
+    {
+      "name": "Anexos",
+      "description": "Upload de arquivos"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Verifica se a API está no ar",
+        "description": "**Acesso:** Público",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Este documento OpenAPI",
+        "description": "**Acesso:** Público",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Login: devolve um JWT com validade de 12h",
+        "description": "**Acesso:** Público",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "senha": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "email",
+                  "senha"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "E-mail ou senha incorretos (mesma resposta nos dois casos)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Muitas tentativas: limite de 20 a cada 15 minutos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuarios": {
+      "post": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Cadastro. Público cria sempre um cliente; só um admin autenticado cria agentes e admins",
+        "description": "**Acesso:** Público",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "senha": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 72
+                  },
+                  "nivelAcesso": {
+                    "type": "string",
+                    "enum": [
+                      "cliente",
+                      "agente",
+                      "admin"
+                    ]
+                  }
+                },
+                "required": [
+                  "nome",
+                  "email",
+                  "senha"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário criado (sem o campo senha)"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "E-mail já cadastrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Lista usuários",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      }
+    },
+    "/usuarios/{id}": {
+      "get": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Perfil de um usuário (o próprio, ou qualquer um para admin)",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Atualiza o próprio perfil; só admin altera nível de acesso",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "nivelAcesso": {
+                    "type": "string",
+                    "enum": [
+                      "cliente",
+                      "agente",
+                      "admin"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Remove usuário",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/empresas": {
+      "post": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Cadastra empresa",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 150
+                  },
+                  "cnpj": {
+                    "type": "string",
+                    "minLength": 14,
+                    "maxLength": 18
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  }
+                },
+                "required": [
+                  "nome",
+                  "cnpj",
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Empresa criada"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "409": {
+            "description": "CNPJ duplicado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Lista empresas",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      }
+    },
+    "/empresas/{id}": {
+      "get": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Detalha empresa",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Atualiza empresa",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 150
+                  },
+                  "cnpj": {
+                    "type": "string",
+                    "minLength": 14,
+                    "maxLength": 18
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  }
+                },
+                "required": [
+                  "nome",
+                  "cnpj",
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Remove empresa",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/agentes": {
+      "post": {
+        "tags": [
+          "Agentes"
+        ],
+        "summary": "Vincula um usuário como agente de uma empresa",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idUsuario": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "idEmpresa": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "cargo": {
+                    "type": "string",
+                    "maxLength": 50
+                  },
+                  "disponivel": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "idUsuario",
+                  "idEmpresa"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Agente criado"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Agentes"
+        ],
+        "summary": "Lista agentes",
+        "description": "**Acesso:** Agente ou admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      }
+    },
+    "/agentes/{id}": {
+      "get": {
+        "tags": [
+          "Agentes"
+        ],
+        "summary": "Detalha agente",
+        "description": "**Acesso:** Agente ou admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Agentes"
+        ],
+        "summary": "Atualiza agente",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idUsuario": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "idEmpresa": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "cargo": {
+                    "type": "string",
+                    "maxLength": 50
+                  },
+                  "disponivel": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Agentes"
+        ],
+        "summary": "Remove agente",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/agentes/{id}/disponibilidade": {
+      "patch": {
+        "tags": [
+          "Agentes"
+        ],
+        "summary": "Disponibilidade (o agente altera a própria; admin altera qualquer uma)",
+        "description": "**Acesso:** Agente ou admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "disponivel": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "disponivel"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/chamados": {
+      "post": {
+        "tags": [
+          "Chamados"
+        ],
+        "summary": "Abre chamado. Protocolo HD-AAAA-NNNNN gerado em transação; cliente sempre abre em nome próprio",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idCliente": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "idAgente": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "idEmpresa": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "titulo": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 150
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "categoria": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 50
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "prioridade": {
+                    "type": "string",
+                    "enum": [
+                      "baixa",
+                      "media",
+                      "alta"
+                    ]
+                  },
+                  "anexo": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "mimeTypeAnexo": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "titulo",
+                  "descricao"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Chamado criado"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Chamados"
+        ],
+        "summary": "Lista chamados (cliente vê só os próprios)",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      }
+    },
+    "/chamados/{id}": {
+      "get": {
+        "tags": [
+          "Chamados"
+        ],
+        "summary": "Detalha chamado (cliente só o próprio)",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Chamados"
+        ],
+        "summary": "Atualiza chamado (o protocolo não pode ser alterado)",
+        "description": "**Acesso:** Agente ou admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idCliente": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "idAgente": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "idEmpresa": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "titulo": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 150
+                  },
+                  "descricao": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "categoria": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 50
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "prioridade": {
+                    "type": "string",
+                    "enum": [
+                      "baixa",
+                      "media",
+                      "alta"
+                    ]
+                  },
+                  "anexo": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "mimeTypeAnexo": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aberto",
+                      "em_atendimento",
+                      "aguardando_cliente",
+                      "concluido",
+                      "cancelado"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Chamados"
+        ],
+        "summary": "Remove chamado",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/chamados/{id}/status": {
+      "patch": {
+        "tags": [
+          "Chamados"
+        ],
+        "summary": "Muda status e notifica o cliente em tempo real (cliente só pode cancelar)",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aberto",
+                      "em_atendimento",
+                      "aguardando_cliente",
+                      "concluido",
+                      "cancelado"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/chamados/{id}/atribuir": {
+      "patch": {
+        "tags": [
+          "Chamados"
+        ],
+        "summary": "Atribui agente e grava log de auditoria na mesma transação",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idAgente": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/chamados/{id}/avaliar": {
+      "patch": {
+        "tags": [
+          "Chamados"
+        ],
+        "summary": "CSAT de 1 a 5: só o dono avalia, e só chamado concluído",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "avaliacao": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  }
+                },
+                "required": [
+                  "avaliacao"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          },
+          "409": {
+            "description": "O chamado ainda não foi concluído",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chamados/{id}/mensagens": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Envia mensagem (remetente vem do token) e notifica via Socket.io",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mensagem": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "anexo": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "mimeTypeAnexo": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "mensagem"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Mensagem enviada"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Histórico do chat do chamado",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/mensagens/{id}": {
+      "delete": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Remove mensagem",
+        "description": "**Acesso:** Agente ou admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/notificacoes": {
+      "post": {
+        "tags": [
+          "Notificações"
+        ],
+        "summary": "Cria notificação manual",
+        "description": "**Acesso:** Agente ou admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idUsuario": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "idChamado": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "tipo": {
+                    "type": "string",
+                    "enum": [
+                      "novo_chamado",
+                      "nova_mensagem",
+                      "status_alterado",
+                      "chamado_concluido",
+                      "chamado_cancelado"
+                    ]
+                  }
+                },
+                "required": [
+                  "idUsuario",
+                  "tipo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Notificação criada"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Notificações"
+        ],
+        "summary": "Notificações do usuário logado",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      }
+    },
+    "/notificacoes/{id}": {
+      "get": {
+        "tags": [
+          "Notificações"
+        ],
+        "summary": "Detalha notificação própria",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Notificações"
+        ],
+        "summary": "Remove notificação",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/notificacoes/{id}/lida": {
+      "patch": {
+        "tags": [
+          "Notificações"
+        ],
+        "summary": "Marca notificação própria como lida",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/categorias": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Lista categorias",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Cria categoria",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 50
+                  }
+                },
+                "required": [
+                  "nome"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Categoria criada"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      }
+    },
+    "/categorias/{id}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Remove categoria",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/macros": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Lista respostas prontas",
+        "description": "**Acesso:** Agente ou admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Cria resposta pronta",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titulo": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "texto": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "titulo",
+                  "texto"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Macro criada"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      }
+    },
+    "/macros/{id}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Remove resposta pronta",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "400": {
+            "description": "Dados ou ID inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          }
+        }
+      }
+    },
+    "/logs": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Últimos 100 logs de auditoria",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      }
+    },
+    "/analytics": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Indicadores: totais, SLA (tempo médio de resolução) e CSAT",
+        "description": "**Acesso:** Somente admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      }
+    },
+    "/upload": {
+      "post": {
+        "tags": [
+          "Anexos"
+        ],
+        "summary": "Upload de anexo (PDF ou imagem, até 10 MB)",
+        "description": "**Acesso:** Qualquer usuário autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "arquivo": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "arquivo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado"
+          },
+          "403": {
+            "description": "Perfil sem permissão, ou recurso de outro usuário"
+          }
+        }
+      }
+    }
+  }
+}

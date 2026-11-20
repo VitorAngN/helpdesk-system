@@ -26,6 +26,8 @@ jobs:
       - run: npx prisma generate
       - run: npm run typecheck
       - run: npm test
+      - name: OpenAPI versionado está atualizado
+        run: npm run openapi && git diff --exit-code ../docs/api/openapi.json
       - run: npm run build
 
   frontend:
