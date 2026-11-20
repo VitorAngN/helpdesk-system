@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helpdesk Corporativo — João Vitor Angelim Nogueira</title>
+<meta name="description" content="Sistema de helpdesk com API REST em Node.js/TypeScript, JWT, RBAC, Socket.io, Prisma/MySQL, testes automatizados, Docker e CI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#ffffff; --soft:#f6f8fb; --card:#ffffff; --line:#e5e9f0; --txt:#1f2937; --muted:#6b7280; --acc:#1e3a5f; --acc2:#2563eb; --ok:#16a34a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--txt); line-height:1.6; }
+  a { color:var(--acc2); text-decoration:none; } a:hover { text-decoration:underline; }
+  .wrap { max-width:1080px; margin:0 auto; padding:0 24px; }
+  nav { border-bottom:1px solid var(--line); background:#fff; position:sticky; top:0; z-index:10; }
+  nav .wrap { display:flex; align-items:center; justify-content:space-between; height:64px; }
+  nav .logo { font-weight:700; color:var(--acc); }
+  nav .links a { color:var(--muted); margin-left:24px; font-weight:500; font-size:15px; }
+  header { padding:72px 0 56px; background:var(--soft); }
+  .eyebrow { display:inline-block; background:#e8eef7; color:var(--acc); font-size:13px; font-weight:600; padding:6px 12px; border-radius:999px; }
+  h1 { font-size:clamp(32px,5vw,46px); margin:16px 0 12px; line-height:1.15; color:#111827; }
+  .lead { font-size:18px; color:var(--muted); max-width:720px; }
+  .btns { display:flex; gap:12px; flex-wrap:wrap; margin-top:28px; }
+  .btn { padding:12px 20px; border-radius:12px; border:1px solid var(--line); background:#fff; color:var(--txt); font-weight:600; box-shadow:0 1px 2px rgba(16,24,40,.06); }
+  .btn.primary { background:var(--acc); border-color:var(--acc); color:#fff; }
+  .btn:hover { text-decoration:none; filter:brightness(1.05); }
+  section { padding:64px 0; }
+  section.alt { background:var(--soft); }
+  h2 { font-size:28px; margin:0 0 24px; color:#111827; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:24px; box-shadow:0 4px 16px rgba(16,24,40,.06); }
+  .stat b { display:block; font-size:34px; color:var(--acc); }
+  .stat span { color:var(--muted); font-size:15px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:24px; box-shadow:0 4px 16px rgba(16,24,40,.06); }
+  .card h3 { margin:0 0 8px; font-size:18px; color:#111827; }
+  .card p { margin:0; color:var(--muted); font-size:15px; }
+  code { background:#f1f4f9; padding:2px 6px; border-radius:6px; font-size:14px; }
+  .tags { display:flex; flex-wrap:wrap; gap:10px; }
+  .tag { background:#fff; border:1px solid var(--line); border-radius:999px; padding:8px 14px; font-size:14px; font-weight:500; }
+  .shots { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:20px; }
+  figure { margin:0; background:#fff; border:1px solid var(--line); border-radius:20px; overflow:hidden; box-shadow:0 4px 16px rgba(16,24,40,.06); }
+  figure img { width:100%; display:block; aspect-ratio:16/10; object-fit:cover; object-position:top; }
+  figcaption { padding:12px 16px; color:var(--muted); font-size:14px; font-weight:500; }
+  pre { background:#0f172a; color:#e2e8f0; border-radius:16px; padding:20px; overflow:auto; font-size:14px; }
+  footer { padding:32px 0 48px; color:var(--muted); font-size:14px; border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <span class="logo">Helpdesk Corporativo</span>
+    <span class="links"><a href="api/">API</a><a href="https://github.com/VitorAngN/helpdesk-system">GitHub</a><a href="https://vitorangn.github.io/">Portfólio</a></span>
+  </div>
+</nav>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Projeto autoral · Back-end</div>
+    <h1>Helpdesk Corporativo</h1>
+    <p class="lead">Sistema de chamados com três perfis (cliente, agente e administrador), chat em tempo real e indicadores de SLA e CSAT. API REST em Node.js e TypeScript, com foco em segurança, testes e execução reproduzível com Docker.</p>
+    <div class="btns">
+      <a class="btn primary" href="api/">Documentação da API</a>
+      <a class="btn" href="https://github.com/VitorAngN/helpdesk-system">Código no GitHub</a>
+      <a class="btn" href="https://github.com/VitorAngN/helpdesk-system/actions/workflows/ci.yml">Pipeline de CI</a>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>Em números</h2>
+    <div class="stats">
+      <div class="stat"><b>44</b><span>rotas REST documentadas</span></div>
+      <div class="stat"><b>49</b><span>testes automatizados (Vitest + Supertest)</span></div>
+      <div class="stat"><b>21</b><span>verificações ponta a ponta com MySQL real</span></div>
+      <div class="stat"><b>3</b><span>perfis com controle de acesso (RBAC)</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Destaques de engenharia</h2>
+    <div class="grid">
+      <div class="card"><h3>Autorização por perfil e por dono</h3><p>Além do RBAC, cada rota verifica o dono do recurso: um cliente só lê, cancela, avalia e conversa nos próprios chamados. O remetente de uma mensagem vem do token, nunca do corpo da requisição.</p></div>
+      <div class="card"><h3>Protocolo sem colisão</h3><p>O protocolo HD-AAAA-NNNNN é gerado a partir do ID dentro de uma transação, eliminando a condição de corrida de um contador baseado em <code>count()</code>.</p></div>
+      <div class="card"><h3>Tempo real autenticado</h3><p>Socket.io exige JWT no handshake; cada usuário entra na própria sala, e as notificações chegam só para quem deve recebê-las.</p></div>
+      <div class="card"><h3>Validação e erros centralizados</h3><p>Entradas validadas com Zod; erros do Prisma mapeados para 404/409; Helmet e limite de tentativas no login, com a mesma resposta para e-mail inexistente e senha errada.</p></div>
+      <div class="card"><h3>Arquitetura testável</h3><p><code>createApp(deps)</code> recebe Prisma e Socket.io por injeção de dependência: os testes exercitam as rotas HTTP reais sem banco. Um teste garante que toda rota está nesta documentação.</p></div>
+      <div class="card"><h3>Entrega</h3><p>Imagens Docker multi-stage sem root, Docker Compose com healthchecks, CI no GitHub Actions (type-check, testes, build e imagens) e deploy validado em Linux na AWS EC2.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Stack</h2>
+    <div class="tags">
+      <span class="tag">Node.js 22</span><span class="tag">TypeScript (strict)</span><span class="tag">Express 5</span><span class="tag">Prisma</span><span class="tag">MySQL 8</span><span class="tag">Socket.io</span><span class="tag">JWT + Bcrypt</span><span class="tag">Zod</span><span class="tag">Vitest + Supertest</span><span class="tag">React 19 + Vite</span><span class="tag">Docker Compose</span><span class="tag">Nginx</span><span class="tag">GitHub Actions</span><span class="tag">AWS EC2</span>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <h2>Telas</h2>
+    <div class="shots">
+      <figure><img src="img/client-dashboard.png" alt="Painel do cliente" loading="lazy"><figcaption>Painel do cliente</figcaption></figure>
+      <figure><img src="img/client-chat.png" alt="Chat em tempo real" loading="lazy"><figcaption>Chat em tempo real</figcaption></figure>
+      <figure><img src="img/agent-dashboard.png" alt="Painel do agente" loading="lazy"><figcaption>Painel do agente</figcaption></figure>
+      <figure><img src="img/admin-dashboard.png" alt="Indicadores SLA e CSAT" loading="lazy"><figcaption>Indicadores de SLA e CSAT</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Rodando localmente</h2>
+<pre>git clone https://github.com/VitorAngN/helpdesk-system.git
+cd helpdesk-system
+docker compose up -d --build
+docker compose exec backend npm run seed   # usuários de teste
+node scripts/smoke-test.mjs                # 21 verificações ponta a ponta</pre>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    João Vitor Angelim Nogueira · Engenharia de Computação (UTFPR) ·
+    <a href="https://github.com/VitorAngN">GitHub</a> ·
+    <a href="https://www.linkedin.com/in/vitorangn/">LinkedIn</a> ·
+    <a href="https://vitorangn.github.io/">Portfólio</a>
+  </div>
+</footer>
+</body>
+</html>

@@ -3,6 +3,7 @@ import express, { type Express } from 'express';
 import helmet from 'helmet';
 import { env } from './config/env.js';
 import { errorHandler } from './middlewares/errorHandler.js';
+import { gerarOpenApi } from './openapi.js';
 import { adminRoutes } from './routes/admin.routes.js';
 import { agentesRoutes } from './routes/agentes.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
@@ -28,6 +29,11 @@ export const createApp = (deps: Deps): Express => {
 
     app.get('/api/health', (_req, res) => {
         res.json({ status: 'ok' });
+    });
+
+    const openApi = gerarOpenApi();
+    app.get('/api/openapi.json', (_req, res) => {
+        res.json(openApi);
     });
 
     app.use(

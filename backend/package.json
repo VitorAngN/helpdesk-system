@@ -22,7 +22,8 @@
     "build": "tsc -p tsconfig.build.json",
     "test:watch": "vitest",
     "seed": "node dist/seed.js",
-    "seed:dev": "tsx src/seed.ts"
+    "seed:dev": "tsx src/seed.ts",
+    "openapi": "tsx scripts/gerar-openapi.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
