@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { conectarSocket, desconectarSocket } from '../services/socket';
 import { AuthContext, type Usuario } from './AuthContextValue';
 
 const getStoredUsuario = (): Usuario | null => {
@@ -18,6 +19,12 @@ const getStoredUsuario = (): Usuario | null => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(getStoredUsuario);
+
+  // Conecta o socket (com o JWT) só quando há usuário logado.
+  useEffect(() => {
+    if (usuario) conectarSocket();
+    else desconectarSocket();
+  }, [usuario]);
 
   const loginState = (token: string, userData: Usuario) => {
     setUsuario(userData);

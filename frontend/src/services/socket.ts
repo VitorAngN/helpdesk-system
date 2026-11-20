@@ -10,12 +10,22 @@ const getBackendUrl = () => {
 
 const API_URL = getBackendUrl();
 
-// Instância global do socket, conectada ao backend
+// Instância global do socket. O JWT é enviado no handshake: o backend só aceita
+// conexões autenticadas e coloca cada usuário na sua própria sala de notificações.
 const socket = io(API_URL, {
-    autoConnect: true,
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
+  autoConnect: false,
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  auth: (cb) => cb({ token: localStorage.getItem('@HelpDesk:token') }),
 });
+
+export const conectarSocket = () => {
+  if (localStorage.getItem('@HelpDesk:token') && !socket.connected) socket.connect();
+};
+
+export const desconectarSocket = () => {
+  socket.disconnect();
+};
 
 export default socket;
