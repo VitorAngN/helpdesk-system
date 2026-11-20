@@ -60,6 +60,12 @@ cd backend
 npm test        # roda a suíte
 ```
 
+Com a stack no ar (`docker compose up`), um **teste de fumaça ponta a ponta** exercita a API real com MySQL: cadastro, login, chamados, chat, bloqueios de acesso entre clientes, conclusão pelo admin, CSAT e analytics (21 verificações):
+
+```bash
+node scripts/smoke-test.mjs
+```
+
 ---
 
 ## Stack Tecnológica
@@ -132,6 +138,7 @@ A infraestrutura completa da aplicação foi desenhada para subir com um único 
 3. Na raiz do repositório, rode o comando:
    ```bash
    docker compose up -d --build
+   docker compose exec backend npm run seed   # cria admin, agente e cliente de teste
    ```
 4. Acesse a aplicação:
    - **Frontend:** http://localhost
@@ -158,7 +165,7 @@ A infraestrutura completa da aplicação foi desenhada para subir com um único 
    npx prisma generate
    npx prisma db push
    ```
-5. (Opcional) Crie usuários de teste: `npm run seed`
+5. (Opcional) Crie usuários de teste: `npm run seed:dev`
 6. Inicie o servidor: `npm run dev` (Porta padrão: 3000)
 
 Outros scripts do backend: `npm test` (testes), `npm run typecheck`, `npm run build` e `npm start` (roda a versão compilada).
